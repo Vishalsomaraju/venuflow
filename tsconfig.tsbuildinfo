@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/components/layout/applayout.tsx","./src/components/layout/sidebar.tsx","./src/lib/env.ts","./src/lib/utils.ts","./src/pages/admin.tsx","./src/pages/assistant.tsx","./src/pages/dashboard.tsx","./src/pages/venuemap.tsx","./src/store/uistore.ts"],"version":"6.0.3"}
