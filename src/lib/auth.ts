@@ -12,7 +12,7 @@ export const loginAnonymously = async () => {
   try {
     const userCredential = await signInAnonymously(auth);
     return { user: userCredential.user, error: null };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Anonymous sign in error:', error);
     return { user: null, error };
   }
@@ -22,7 +22,7 @@ export const loginWithGoogle = async () => {
   try {
     const userCredential = await signInWithPopup(auth, googleProvider);
     return { user: userCredential.user, error: null };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Google sign in error:', error);
     return { user: null, error };
   }
@@ -32,7 +32,7 @@ export const logout = async () => {
   try {
     await firebaseSignOut(auth);
     return { error: null };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Sign out error:', error);
     return { error };
   }

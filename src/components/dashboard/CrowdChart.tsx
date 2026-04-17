@@ -66,12 +66,15 @@ export function CrowdChart() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [zones.length > 0]) // Only re-setup when zones first arrive
 
   // Update latest point when zones change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (zones.length === 0 || history.length === 0) return
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHistory((prev) => {
       if (prev.length === 0) return prev
 

@@ -1,6 +1,6 @@
 import { db } from './firebase'
 import { collection, writeBatch, doc } from 'firebase/firestore'
-import { Zone, Facility } from '@/types'
+import { Zone, Facility, FacilityType } from '@/types'
 
 const ZONES = [
   { name: 'North Stand', capacity: 15000 },
@@ -69,7 +69,7 @@ export async function seedDatabase() {
     const facility: Facility = {
       id: docRef.id,
       name: f.name,
-      type: f.type as any,
+      type: f.type as FacilityType,
       zoneId: zoneIdMap.get(f.zoneName) || 'unknown',
       isOpen: true,
       waitMinutes: 0,

@@ -45,7 +45,7 @@ export const setDocument = <T extends DocumentData>(colName: string, id: string,
 
 export const updateDocument = <T extends DocumentData>(colName: string, id: string, data: Partial<T>) => {
   const docRef = doc(db, colName, id);
-  return updateDoc(docRef, data as any);
+  return updateDoc(docRef, data as Record<string, unknown>);
 };
 
 export const addDocument = async <T extends DocumentData>(colName: string, data: T): Promise<string> => {

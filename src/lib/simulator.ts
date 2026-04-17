@@ -1,7 +1,7 @@
 import { doc, writeBatch, serverTimestamp } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { addDocument } from '@/lib/db' // changed from firestore to db
-import type { CongestionLevel } from '@/types'
+import type { CongestionLevel, Alert } from '@/types'
 
 interface SimulationConfig {
   intervalMs: number
@@ -152,7 +152,7 @@ async function generateRandomAlert(): Promise<void> {
       ...template,
       active: true,
       createdAt: new Date(), // using local date instead of serverTimestamp since we don't have it natively matched in generic addDocument just yet
-    } as any)
+    } as Omit<Alert, 'id'>)
   } catch (error) {
     console.warn('Alert generation failed:', error)
   }
