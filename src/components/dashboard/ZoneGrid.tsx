@@ -1,4 +1,5 @@
-import { useCrowdStore } from '@/store/crowdStore'
+// src/components/dashboard/ZoneGrid.tsx
+import { useVenueStore } from '@/store/venueStore'
 import { Badge, congestionToBadgeVariant } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { cn } from '@/lib/utils'
@@ -6,7 +7,7 @@ import { Users, TrendingUp } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export function ZoneGrid() {
-  const zones = useCrowdStore((s) => s.zones)
+  const zones = useVenueStore((s) => s.zones)
 
   if (zones.length === 0) {
     return (
@@ -21,9 +22,8 @@ export function ZoneGrid() {
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {zones.map((zone, index) => {
-        const ratio = zone.capacity > 0
-          ? zone.currentCount / zone.capacity
-          : 0
+        const ratio =
+          zone.capacity > 0 ? zone.currentCount / zone.capacity : 0
         const percentage = Math.round(ratio * 100)
 
         return (
@@ -40,7 +40,8 @@ export function ZoneGrid() {
                     {zone.name}
                   </h3>
                   <p className="text-xs text-text-muted mt-0.5">
-                    {zone.currentCount.toLocaleString()} / {zone.capacity.toLocaleString()}
+                    {zone.currentCount.toLocaleString()} /{' '}
+                    {zone.capacity.toLocaleString()}
                   </p>
                 </div>
                 <Badge

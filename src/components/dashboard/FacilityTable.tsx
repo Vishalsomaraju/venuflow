@@ -1,4 +1,5 @@
-import { useCrowdStore } from '@/store/crowdStore'
+// src/components/dashboard/FacilityTable.tsx
+import { useVenueStore } from '@/store/venueStore'
 import { Card, CardHeader, CardContent } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { formatWaitTime } from '@/lib/utils'
@@ -30,8 +31,8 @@ function getWaitVariant(
 }
 
 export function FacilityTable() {
-  const facilities = useCrowdStore((s) => s.facilities)
-  const zones = useCrowdStore((s) => s.zones)
+  const facilities = useVenueStore((s) => s.facilities)
+  const zones = useVenueStore((s) => s.zones)
 
   const getZoneName = (zoneId: string) =>
     zones.find((z) => z.id === zoneId)?.name ?? zoneId

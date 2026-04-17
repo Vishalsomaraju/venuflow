@@ -1,5 +1,6 @@
+// src/components/dashboard/CrowdChart.tsx
 import { useState, useEffect, useRef } from 'react'
-import { useCrowdStore } from '@/store/crowdStore'
+import { useVenueStore } from '@/store/venueStore'
 import { Card, CardHeader, CardContent } from '@/components/ui/Card'
 import { Activity } from 'lucide-react'
 import {
@@ -32,9 +33,10 @@ const ZONE_COLORS: Record<string, string> = {
 const MAX_DATA_POINTS = 30
 
 export function CrowdChart() {
-  const zones = useCrowdStore((s) => s.zones)
+  const zones = useVenueStore((s) => s.zones)
   const [history, setHistory] = useState<ChartDataPoint[]>([])
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const zonesLoadedRef = useRef(false)
 
   // Capture snapshots of zone data over time
   useEffect(() => {
@@ -57,29 +59,32 @@ export function CrowdChart() {
       })
     }
 
-    // Capture immediately
-    captureSnapshot()
-
-    // Then capture every 5 seconds
-    intervalRef.current = setInterval(captureSnapshot, 5000)
+    // Only set up interval once when zones first load
+    if (!zonesLoadedRef.current) {
+      zonesLoadedRef.current = true
+      captureSnapshot()
+      intervalRef.current = setInterval(captureSnapshot, 5000)
+    }
 
     return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current)
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+        zonesLoadedRef.current = false
+      }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [zones.length > 0]) // Only re-setup when zones first arrive
+  }, [zones.length > 0]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Update latest point when zones change
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // Update latest data point when zones change
   useEffect(() => {
     if (zones.length === 0 || history.length === 0) return
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHistory((prev) => {
       if (prev.length === 0) return prev
-
       const updated = [...prev]
-      const lastPoint = { ...updated[updated.length - 1] } as ChartDataPoint
+      const last = updated[updated.length - 1]
+      if (!last) return updated
+      const lastPoint: ChartDataPoint = { ...last }
 
       for (const zone of zones) {
         lastPoint[zone.name] = zone.currentCount
@@ -88,7 +93,7 @@ export function CrowdChart() {
       updated[updated.length - 1] = lastPoint
       return updated
     })
-  }, [zones])
+  }, [zones]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const zoneNames = zones.map((z) => z.name)
 
@@ -111,7 +116,8 @@ export function CrowdChart() {
         {history.length < 2 ? (
           <div className="flex h-52 items-center justify-center">
             <p className="text-text-muted text-sm">
-              📊 Collecting data points... Start the simulator to see live trends.
+              📊 Collecting data points... Start the simulator to see live
+              trends.
             </p>
           </div>
         ) : (
@@ -157,7 +163,9 @@ export function CrowdChart() {
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={(val: number) =>
-                  val >= 1000 ? `${(val / 1000).toFixed(1)}k` : String(val)
+                  val >= 1000
+                    ? `${(val / 1000).toFixed(1)}k`
+                    : String(val)
                 }
               />
               <Tooltip

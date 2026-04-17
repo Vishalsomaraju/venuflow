@@ -1,4 +1,5 @@
-import { useCrowdStore } from '@/store/crowdStore'
+// src/components/dashboard/AlertsFeed.tsx
+import { useVenueStore } from '@/store/venueStore'
 import { Badge, severityToBadgeVariant } from '@/components/ui/Badge'
 import { Card, CardHeader, CardContent } from '@/components/ui/Card'
 import { cn } from '@/lib/utils'
@@ -13,7 +14,7 @@ const severityIcons = {
 }
 
 export function AlertsFeed() {
-  const alerts = useCrowdStore((s) => s.alerts)
+  const alerts = useVenueStore((s) => s.alerts)
 
   return (
     <Card>
@@ -39,7 +40,10 @@ export function AlertsFeed() {
           <div className="space-y-2 max-h-64 overflow-y-auto">
             <AnimatePresence mode="popLayout">
               {alerts.slice(0, 10).map((alert) => {
-                const Icon = severityIcons[alert.severity] || Info
+                const Icon =
+                  severityIcons[
+                    alert.severity as keyof typeof severityIcons
+                  ] || Info
 
                 return (
                   <motion.div
@@ -66,7 +70,9 @@ export function AlertsFeed() {
                         {alert.message}
                       </p>
                       <div className="flex items-center gap-2 mt-1">
-                        <Badge variant={severityToBadgeVariant(alert.severity)}>
+                        <Badge
+                          variant={severityToBadgeVariant(alert.severity)}
+                        >
                           {alert.severity}
                         </Badge>
                         {alert.createdAt && (
