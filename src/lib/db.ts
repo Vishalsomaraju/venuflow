@@ -4,7 +4,8 @@ import {
   getDoc, 
   getDocs, 
   setDoc, 
-  updateDoc, 
+  updateDoc,
+  addDoc, 
   query, 
   QueryConstraint,
   onSnapshot,
@@ -45,6 +46,12 @@ export const setDocument = <T extends DocumentData>(colName: string, id: string,
 export const updateDocument = <T extends DocumentData>(colName: string, id: string, data: Partial<T>) => {
   const docRef = doc(db, colName, id);
   return updateDoc(docRef, data as any);
+};
+
+export const addDocument = async <T extends DocumentData>(colName: string, data: T): Promise<string> => {
+  const colRef = collection(db, colName).withConverter(createConverter<T>());
+  const docRef = await addDoc(colRef, data);
+  return docRef.id;
 };
 
 export const queryDocuments = async <T extends DocumentData>(colName: string, ...constraints: QueryConstraint[]): Promise<T[]> => {

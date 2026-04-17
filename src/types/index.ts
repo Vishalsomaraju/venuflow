@@ -1,4 +1,7 @@
 export type Role = 'user' | 'admin' | 'staff';
+export type CongestionLevel = 'low' | 'medium' | 'high' | 'critical';
+export type AlertSeverity = 'info' | 'warning' | 'critical';
+export type FacilityType = 'gate' | 'concession' | 'restroom' | 'merchandise' | 'medical' | 'info';
 
 export interface User {
   id: string;
@@ -11,26 +14,33 @@ export interface User {
 export interface Zone {
   id: string;
   name: string;
-  currentCapacity: number;
-  maxCapacity: number;
-  status: 'safe' | 'warning' | 'critical';
+  currentCount: number;
+  capacity: number;
+  congestionLevel: CongestionLevel;
   coordinates: { lat: number; lng: number }[];
+  updatedAt?: Date;
+  createdAt?: Date;
 }
 
 export interface Facility {
   id: string;
   name: string;
-  type: 'restroom' | 'food' | 'merch' | 'exit';
-  waitTime: number; // in minutes
+  type: FacilityType;
+  waitMinutes: number;
+  isOpen: boolean;
+  zoneId: string;
   location: { lat: number; lng: number };
+  updatedAt?: Date;
+  createdAt?: Date;
 }
 
 export interface Alert {
   id: string;
-  title: string;
+  title?: string;
   message: string;
-  severity: 'low' | 'medium' | 'high';
-  createdAt: number;
-  timestamp: number; // For created time
+  severity: AlertSeverity;
+  zoneId?: string;
   active: boolean;
+  createdAt?: Date;
+  resolvedAt?: Date | null;
 }
