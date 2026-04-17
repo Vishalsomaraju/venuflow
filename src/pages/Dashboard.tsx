@@ -1,65 +1,98 @@
 // src/pages/Dashboard.tsx
 import { useAuthStore } from '@/store/authStore'
 import { useVenueStats } from '@/hooks/useVenueStats'
-import {
-  useIsConnected,
-  useMostCongestedZone,
-} from '@/hooks/useVenueSelectors'
-import { StatCard } from '@/components/dashboard/StatCard'
-import { ZoneGrid } from '@/components/dashboard/ZoneGrid'
-import { AlertsFeed } from '@/components/dashboard/AlertsFeed'
+import { useIsConnected, useMostCongestedZone } from '@/hooks/useVenueSelectors'
+import { AnimatedStatCard } from '@/components/dashboard/AnimatedStatCard'
+import { ZoneCongestionGrid } from '@/components/dashboard/ZoneCongestionGrid'
+import { RecentAlerts } from '@/components/dashboard/RecentAlerts'
 import { CrowdChart } from '@/components/dashboard/CrowdChart'
 import { FacilityTable } from '@/components/dashboard/FacilityTable'
 import { SimulationControl } from '@/components/dashboard/SimulationControl'
+import { StatCardSkeleton } from '@/components/ui/Skeleton'
 import { cn } from '@/lib/utils'
 import {
   Users,
   Clock,
+  DoorOpen,
   AlertTriangle,
-  Activity,
   Wifi,
   WifiOff,
-  DoorOpen,
   MapPin,
 } from 'lucide-react'
+import { motion } from 'framer-motion'
 
+// ─── Section header ───────────────────────────────────────────────
+function SectionHeader({
+  title,
+  subtitle,
+}: {
+  title: string
+  subtitle?: string
+}) {
+  return (
+    <div>
+      <h2 className="text-lg font-semibold text-text-primary">{title}</h2>
+      {subtitle && (
+        <p className="text-xs text-text-muted mt-0.5">{subtitle}</p>
+      )}
+    </div>
+  )
+}
+
+// ─── Dashboard ───────────────────────────────────────────────────
 export function Dashboard() {
-  const { user, appUser } = useAuthStore()
-  const role = appUser?.role || 'user'
+  const { appUser, user } = useAuthStore()
+  const role = appUser?.role ?? 'guest'
   const isConnected = useIsConnected()
   const mostCongested = useMostCongestedZone()
 
-  // Auto-refreshing derived stats
-  const { stats, isStale, lastSyncAt } = useVenueStats({
-    refreshInterval: 2000,
-    autoRefresh: true,
-  })
+  const { stats, isStale, lastSyncAt, isConnected: statsConnected } =
+    useVenueStats({ refreshInterval: 2000, autoRefresh: true })
+
+  const isLoading = !statsConnected && stats.totalCapacity === 0
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
+    <div className="space-y-8">
+      {/* ── Page Header ────────────────────────────────── */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-text-primary">
+          <motion.h1
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4 }}
+            className="text-2xl font-bold text-text-primary tracking-tight"
+          >
             Stadium Dashboard
-          </h1>
-          <p className="text-text-secondary mt-1">
-            Real-time crowd monitoring and venue intelligence
-          </p>
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.1, duration: 0.4 }}
+            className="text-sm text-text-secondary mt-1"
+          >
+            Real-time crowd intelligence
+            {appUser?.displayName ? ` · ${appUser.displayName}` : ''}
+          </motion.p>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          <SimulationControl />
 
-          {/* Connection status */}
+        <motion.div
+          initial={{ opacity: 0, x: 12 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.15, duration: 0.4 }}
+          className="flex items-center gap-3 flex-wrap"
+        >
+          {/* Sim control — only for staff/admin */}
+          {(role === 'staff' || role === 'admin') && <SimulationControl />}
+
+          {/* Live / Stale / Offline indicator */}
           <div
             className={cn(
-              'flex items-center gap-2 rounded-lg px-3 py-2 text-xs',
-              'border transition-colors',
+              'flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs border font-medium',
               isConnected && !isStale
-                ? 'border-emerald-500/30 text-emerald-400'
+                ? 'border-emerald-500/30 bg-emerald-500/8 text-emerald-400'
                 : isStale
-                  ? 'border-amber-500/30 text-amber-400'
-                  : 'border-red-500/30 text-red-400'
+                  ? 'border-amber-500/30 bg-amber-500/8 text-amber-400'
+                  : 'border-red-500/30 bg-red-500/8 text-red-400'
             )}
           >
             {isConnected ? (
@@ -71,172 +104,224 @@ export function Dashboard() {
               ? 'Live'
               : isStale
                 ? 'Stale'
-                : 'Disconnected'}
+                : 'Offline'}
           </div>
 
           {/* Role badge */}
           <div
             className={cn(
-              'rounded-full px-3 py-1 text-xs font-medium',
+              'rounded-full px-3 py-1 text-xs font-medium capitalize',
               role === 'admin'
-                ? 'bg-purple-500/20 text-purple-400'
+                ? 'bg-purple-500/15 text-purple-400'
                 : role === 'staff'
-                  ? 'bg-blue-500/20 text-blue-400'
+                  ? 'bg-blue-500/15 text-blue-400'
                   : 'bg-surface-light text-text-secondary'
             )}
           >
             {role}
-            {user?.isAnonymous ? ' (guest)' : ''}
+            {user?.isAnonymous ? ' · guest' : ''}
           </div>
-        </div>
+        </motion.div>
       </div>
 
-      {/* Primary Stats Grid */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          icon={Users}
-          label="Total Attendance"
-          value={
-            stats.totalAttendees > 0
-              ? stats.totalAttendees.toLocaleString()
-              : '—'
-          }
-          subtitle={`${stats.occupancyPercent}% venue capacity`}
-          color="bg-blue-500/20"
-        />
-        <StatCard
-          icon={Activity}
-          label="Zone Status"
-          value={
-            stats.totalCapacity > 0
-              ? `${stats.congestionBreakdown.low + stats.congestionBreakdown.medium}/${
-                  Object.values(stats.congestionBreakdown).reduce(
-                    (a, b) => a + b,
-                    0
-                  )
-                }`
-              : '—'
-          }
-          subtitle={
-            stats.criticalZoneCount > 0
-              ? `${stats.criticalZoneCount} critical zone${stats.criticalZoneCount > 1 ? 's' : ''}`
-              : 'All zones normal'
-          }
-          color="bg-emerald-500/20"
-        />
-        <StatCard
-          icon={Clock}
-          label="Avg Wait Time"
-          value={
-            stats.averageWaitTime > 0 ? `${stats.averageWaitTime} min` : '—'
-          }
-          subtitle="Across open facilities"
-          color="bg-amber-500/20"
-        />
-        <StatCard
-          icon={DoorOpen}
-          label="Open Gates"
-          value={
-            stats.totalGatesCount > 0
-              ? `${stats.openGatesCount}/${stats.totalGatesCount}`
-              : '—'
-          }
-          subtitle={
-            stats.openGatesCount < stats.totalGatesCount
-              ? `${stats.totalGatesCount - stats.openGatesCount} closed`
-              : 'All gates operational'
-          }
-          color="bg-purple-500/20"
-        />
-      </div>
-
-      {/* Most Congested Zone Callout */}
-      {mostCongested && mostCongested.congestionLevel !== 'low' && (
-        <div
-          className={cn(
-            'rounded-xl border p-4 flex items-center gap-3',
-            mostCongested.congestionLevel === 'critical'
-              ? 'border-red-500/30 bg-red-500/5'
-              : mostCongested.congestionLevel === 'high'
-                ? 'border-amber-500/30 bg-amber-500/5'
-                : 'border-surface-border bg-surface'
-          )}
-        >
-          <MapPin
+      {/* ── Most-Congested Callout (conditional) ───────── */}
+      {mostCongested &&
+        (mostCongested.congestionLevel === 'high' ||
+          mostCongested.congestionLevel === 'critical') && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
             className={cn(
-              'h-5 w-5 shrink-0',
+              'rounded-xl border p-4 flex items-center gap-3',
               mostCongested.congestionLevel === 'critical'
-                ? 'text-red-400'
-                : 'text-amber-400'
+                ? 'border-red-500/40 bg-red-500/5'
+                : 'border-orange-500/30 bg-orange-500/5'
             )}
-          />
-          <div>
-            <p className="text-sm font-medium text-text-primary">
-              Highest congestion:{' '}
-              <span className="font-bold">{mostCongested.name}</span>
-            </p>
-            <p className="text-xs text-text-secondary">
-              {mostCongested.currentCount.toLocaleString()} /{' '}
-              {mostCongested.capacity.toLocaleString()} capacity (
-              {Math.round(
-                (mostCongested.currentCount / mostCongested.capacity) * 100
+          >
+            <MapPin
+              className={cn(
+                'h-5 w-5 shrink-0',
+                mostCongested.congestionLevel === 'critical'
+                  ? 'text-red-400'
+                  : 'text-orange-400'
               )}
-              %)
-            </p>
+            />
+            <div>
+              <p className="text-sm font-semibold text-text-primary">
+                Highest congestion:{' '}
+                <span>{mostCongested.name}</span>
+              </p>
+              <p className="text-xs text-text-secondary mt-0.5">
+                {mostCongested.currentCount.toLocaleString()} of{' '}
+                {mostCongested.capacity.toLocaleString()} capacity (
+                {Math.round(
+                  (mostCongested.currentCount / mostCongested.capacity) *
+                    100
+                )}
+                %)
+              </p>
+            </div>
+          </motion.div>
+        )}
+
+      {/* ── Section 1: Stat Cards ───────────────────────── */}
+      <section>
+        <SectionHeader
+          title="Key Metrics"
+          subtitle="Auto-refreshed every 2 seconds"
+        />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mt-4">
+          {isLoading ? (
+            Array.from({ length: 4 }, (_, i) => <StatCardSkeleton key={i} />)
+          ) : (
+            <>
+              {/* Total Attendees */}
+              <AnimatedStatCard
+                icon={Users}
+                label="Total Attendees"
+                numericValue={stats.totalAttendees}
+                subtitle={`${stats.occupancyPercent}% venue capacity`}
+                iconBg="bg-blue-500/20"
+                iconColor="text-blue-400"
+                delay={0}
+                trend={
+                  stats.occupancyPercent > 85
+                    ? 'up'
+                    : stats.occupancyPercent < 40
+                      ? 'down'
+                      : 'stable'
+                }
+              />
+
+              {/* Average Wait Time */}
+              <AnimatedStatCard
+                icon={Clock}
+                label="Avg Wait Time"
+                numericValue={stats.averageWaitTime}
+                unit="min"
+                subtitle="Across open facilities"
+                iconBg="bg-amber-500/20"
+                iconColor="text-amber-400"
+                delay={0.07}
+                highlight={stats.averageWaitTime > 20}
+                trend={
+                  stats.averageWaitTime > 20
+                    ? 'up'
+                    : stats.averageWaitTime < 5
+                      ? 'down'
+                      : 'stable'
+                }
+              />
+
+              {/* Open Gates */}
+              <AnimatedStatCard
+                icon={DoorOpen}
+                label="Open Gates"
+                numericValue={stats.openGatesCount}
+                subtitle={
+                  stats.totalGatesCount > 0
+                    ? `of ${stats.totalGatesCount} total`
+                    : 'Awaiting data'
+                }
+                iconBg="bg-emerald-500/20"
+                iconColor="text-emerald-400"
+                delay={0.14}
+                highlight={
+                  stats.totalGatesCount > 0 &&
+                  stats.openGatesCount < stats.totalGatesCount / 2
+                }
+              />
+
+              {/* Active Alerts */}
+              <AnimatedStatCard
+                icon={AlertTriangle}
+                label="Active Alerts"
+                numericValue={stats.activeAlertCount}
+                subtitle={
+                  stats.criticalAlertCount > 0
+                    ? `${stats.criticalAlertCount} critical`
+                    : 'No critical alerts'
+                }
+                iconBg={
+                  stats.criticalAlertCount > 0
+                    ? 'bg-red-500/20'
+                    : 'bg-surface-light'
+                }
+                iconColor={
+                  stats.criticalAlertCount > 0
+                    ? 'text-red-400'
+                    : 'text-text-secondary'
+                }
+                delay={0.21}
+                highlight={stats.criticalAlertCount > 0}
+                trend={
+                  stats.activeAlertCount > 3
+                    ? 'up'
+                    : stats.activeAlertCount === 0
+                      ? 'down'
+                      : 'stable'
+                }
+              />
+            </>
+          )}
+        </div>
+      </section>
+
+      {/* ── Section 2: Zone Congestion Grid ────────────── */}
+      <section>
+        <SectionHeader
+          title="Zone Status"
+          subtitle={`${stats.criticalZoneCount > 0 ? `⚠ ${stats.criticalZoneCount} critical zone(s) — ` : ''}Live occupancy across all stadium zones`}
+        />
+        <div className="mt-4">
+          <ZoneCongestionGrid />
+        </div>
+      </section>
+
+      {/* ── Section 3: Chart + Recent Alerts ───────────── */}
+      <section>
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          <div className="lg:col-span-2">
+            <SectionHeader
+              title="Crowd Density"
+              subtitle="Attendance per zone over time"
+            />
+            <div className="mt-4">
+              <CrowdChart />
+            </div>
+          </div>
+          <div>
+            <SectionHeader
+              title="Recent Alerts"
+              subtitle="Latest 5 of all active"
+            />
+            <div className="mt-4">
+              <RecentAlerts />
+            </div>
           </div>
         </div>
-      )}
+      </section>
 
-      {/* Active Alerts Count Row */}
-      {stats.activeAlertCount > 0 && (
-        <div className="flex items-center gap-2 text-sm">
-          <AlertTriangle
-            className={cn(
-              'h-4 w-4',
-              stats.criticalAlertCount > 0
-                ? 'text-red-400'
-                : 'text-amber-400'
-            )}
-          />
-          <span className="text-text-secondary">
-            {stats.activeAlertCount} active alert
-            {stats.activeAlertCount !== 1 ? 's' : ''}
-            {stats.criticalAlertCount > 0 && (
-              <span className="text-red-400 font-medium">
-                {' '}
-                ({stats.criticalAlertCount} critical)
-              </span>
-            )}
-          </span>
+      {/* ── Section 4: Facility Wait Times ─────────────── */}
+      <section>
+        <SectionHeader
+          title="Facility Wait Times"
+          subtitle="Sorted by longest wait first"
+        />
+        <div className="mt-4">
+          <FacilityTable />
         </div>
-      )}
+      </section>
 
-      {/* Zone Grid */}
-      <div>
-        <h2 className="text-lg font-semibold text-text-primary mb-3">
-          Zone Status
-        </h2>
-        <ZoneGrid />
-      </div>
-
-      {/* Chart + Alerts row */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <div className="lg:col-span-2">
-          <CrowdChart />
-        </div>
-        <div>
-          <AlertsFeed />
-        </div>
-      </div>
-
-      {/* Facility Table */}
-      <FacilityTable />
-
-      {/* Last sync footer */}
+      {/* ── Footer ─────────────────────────────────────── */}
       {lastSyncAt && (
-        <p className="text-xs text-text-muted text-center pt-2">
-          Last sync: {lastSyncAt.toLocaleTimeString()} •{' '}
-          Stats auto-refresh every 2s
+        <p className="text-xs text-text-muted text-center pb-4">
+          Last sync:{' '}
+          <span className="tabular-nums">
+            {lastSyncAt.toLocaleTimeString()}
+          </span>{' '}
+          · Stats refresh every 2s
         </p>
       )}
     </div>
