@@ -24,7 +24,7 @@ vi.mock('react-hot-toast', () => ({
 // ── Mock framer-motion (avoid animation overhead in tests) ───────
 vi.mock('framer-motion', () => {
   const MotionDiv = React.forwardRef(
-    ({ children, ...props }: React.HTMLAttributes<HTMLDivElement>, ref: React.Ref<HTMLDivElement>) =>
+    ({ children, layout, layoutId, initial, animate, exit, variants, transition, ...props }: any, ref: React.Ref<HTMLDivElement>) =>
       React.createElement('div', { ...props, ref }, children)
   )
   MotionDiv.displayName = 'motion.div'

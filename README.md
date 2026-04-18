@@ -1,179 +1,81 @@
-# VenueFlow — Real-time Smart Stadium Management
+# VenueFlow — Fix Checklist & Setup Guide
 
-A production-grade React + TypeScript + Firebase dashboard for live stadium crowd management, built with Vite.
+## Root Causes Fixed (5 bugs)
 
-## Tech Stack
-
-| Layer    | Technology                             |
-| -------- | -------------------------------------- |
-| Frontend | React 19, TypeScript 6, Vite 8         |
-| Styling  | Tailwind CSS 3, Framer Motion          |
-| State    | Zustand 5 with Firestore subscriptions |
-| Backend  | Firebase (Firestore, Auth, Hosting)    |
-| Maps     | Google Maps JS API v3                  |
-| AI       | Google Gemini 1.5 Flash                |
-| Testing  | Vitest 4, Testing Library              |
+| #   | File                                        | Bug                                                                                                                                                                | Fix                                                            |
+| --- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------- |
+| 1   | `src/main.tsx`                              | No `BrowserRouter` — React Router threw "useRoutes() may only be used in a Router context" → **blank white screen**                                                | Added `<BrowserRouter>` + `<AuthProvider>`                     |
+| 2   | `src/components/providers/AuthProvider.tsx` | Never called `signInAnonymously` → users were always unauthenticated → Firestore alerts rule (`auth != null`) denied reads                                         | Added auto `signInAnonymously()` when no user session exists   |
+| 3   | `src/store/venueStore.ts`                   | Alerts query used `where()` + `orderBy()` on different fields → required composite Firestore index that didn't exist → `FirebaseError` crashed alerts subscription | Removed `orderBy` from query, sort client-side instead         |
+| 4   | `firestore.indexes.json`                    | File missing but referenced in `firebase.json` → `firebase deploy` failed                                                                                          | Created with correct composite indexes                         |
+| 5   | `firestore.rules`                           | Old rules blocked alert reads unless user was admin — combined with Bug 2, alerts never loaded                                                                     | Alerts now readable by any signed-in user (anonymous included) |
 
 ---
 
-## Quick Start
+## Files to Replace
 
-### 1 — Clone & install
+Copy each file to the exact path shown:
+
+```
+src/main.tsx                              ← main.tsx
+src/components/providers/AuthProvider.tsx ← AuthProvider.tsx
+src/store/venueStore.ts                   ← venueStore.ts
+firestore.rules                           ← firestore.rules
+firestore.indexes.json                    ← firestore.indexes.json (NEW FILE)
+```
+
+---
+
+## Firebase Console: Enable Anonymous Auth (REQUIRED)
+
+The fixed `AuthProvider` calls `signInAnonymously()`. You must enable this in Firebase:
+
+1. Go to: https://console.firebase.google.com/project/venueflow-promptwars-493616/authentication/providers
+2. Click **"Anonymous"**
+3. Toggle **"Enable"** → Save
+
+Without this, `signInAnonymously()` throws "auth/operation-not-allowed" and alerts won't load.
+
+---
+
+## One-time Setup
 
 ```bash
-git clone <repo-url>
-cd venueflow
+# 1. Install deps (if not done)
 npm install
-```
 
-### 2 — Environment variables
-
-Create `.env.local` in the project root:
-
-```env
-# Firebase
-VITE_FIREBASE_API_KEY=...
-VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-project-id
-VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=...
-VITE_FIREBASE_APP_ID=...
-
-# Google Maps (enable Maps JS API + Directions API in Google Cloud Console)
-VITE_GOOGLE_MAPS_API_KEY=...
-
-# Gemini AI (optional — enables the AI assistant)
-VITE_GEMINI_API_KEY=...
-```
-
-### 3 — Seed the database
-
-**Option A: Python script (recommended)**
-
-```bash
-# Install the Firebase Admin SDK
-pip install firebase-admin
-
-# Download service account key from:
-# Firebase Console → Project Settings → Service accounts → Generate new private key
-# Save as serviceAccountKey.json in the project root
-
+# 2. Seed the database (if not done)
 python seed_firestore.py
 
-# Optional flags:
-python seed_firestore.py --wipe        # wipe existing data first
-python seed_firestore.py --dry-run     # preview without writing
-```
+# 3. Deploy Firestore rules + indexes
+firebase deploy --only firestore
 
-**Option B: Admin panel in the browser**
-
-1. Run `npm run dev`
-2. Open http://localhost:5173
-3. Click "Staff Mode" (bottom-right corner)
-4. Navigate to Admin → "Seed Database"
-
-### 4 — Run
-
-```bash
-npm run dev        # development server
-npm run build      # production build
-npm run preview    # preview production build
-npm test           # run test suite
+# 4. Start dev server
+npm run dev
 ```
 
 ---
 
-## Firestore Rules
+## Verification: Dashboard Should Show
 
-Deploy the included `firestore.rules`:
+After these fixes, opening `http://localhost:5173` you should see:
 
-```bash
-firebase deploy --only firestore:rules
-```
+- ✅ **Key Metrics** — Total Attendees ~43,605, Avg Wait Time, Open Gates 3/4, Active Alerts 5
+- ✅ **Zone Status Grid** — 12 zone cards with congestion bars (South Stand = CRITICAL, West Wing = HIGH)
+- ✅ **Recent Alerts** — 5 alerts including 1 critical (South Stand)
+- ✅ **Facility Wait Times** — 22 facilities sorted by wait time
 
----
-
-## Deployment
-
-### Firebase Hosting
-
-```bash
-npm run deploy
-# equivalent to: vite build && firebase deploy --only hosting,firestore
-```
-
-### Vercel
-
-Push to GitHub — `vercel.json` handles SPA routing automatically.
-
----
-
-## Architecture
-
-```
-src/
-├── components/
-│   ├── dashboard/       # Stat cards, zone grid, alerts, charts
-│   ├── layout/          # Sidebar, AppLayout
-│   ├── providers/       # AuthProvider (Firebase Auth listener)
-│   └── ui/              # Badge, Card, Skeleton, LoadingSpinner
-├── context/             # RoutingContext (map ↔ routing panel)
-├── hooks/               # useVenueStats, useVenueSubscription, ...
-├── lib/
-│   ├── firebase.ts      # Firebase app init
-│   ├── simulator.ts     # Background crowd simulation engine
-│   ├── seedData.ts      # Browser-based Firestore seeder
-│   └── ...
-├── pages/               # Dashboard, VenueMap, Assistant, Admin, StaffPanel
-├── store/               # Zustand stores (venueStore, authStore, uiStore)
-└── types/               # TypeScript interfaces
-```
-
-### Simulator ↔ Seed ID Contract
-
-`simulator.ts` uses **stable document IDs** (`north-stand`, `gate-a`, etc.) to update Firestore.
-`seedData.ts` and `seed_firestore.py` create documents with the **same IDs**.
-Breaking this contract means simulator writes silently fail.
-
----
-
-## Key Features
-
-- **Live Firestore subscriptions** — zones, facilities, alerts update in real-time
-- **Crowd Simulation Engine** — background worker drives realistic crowd waves
-- **SVG Heatmap** — custom hand-crafted stadium visualization with zone tooltips
-- **Google Maps Integration** — facility markers, walking directions, routing panel
-- **AI Assistant** — Gemini 1.5 Flash with live venue context injection
-- **Staff Panel** — override zone congestion, toggle facilities, broadcast alerts
-- **Role-based access** — user / staff / admin roles
-
----
-
-## Test Coverage
-
-```bash
-npm test              # run once
-npm run test:watch    # watch mode
-npm run test:coverage # coverage report
-```
-
-Six test suites covering:
-
-- `calcCongestionLevel` — threshold logic
-- `sortFacilitiesByWait` — sort stability
-- `findNearestOpenFacility` — geospatial logic
-- `buildVenueSystemPrompt` — AI context generation
-- `SimulationControl` — component rendering
-- `ZoneCongestionGrid` — component + badge variants
+If you click **Staff Mode** (bottom-right button) you get the Staff Panel to control zones live.
 
 ---
 
 ## Troubleshooting
 
-| Problem                        | Fix                                                                                         |
-| ------------------------------ | ------------------------------------------------------------------------------------------- |
-| Map doesn't load               | Set `VITE_GOOGLE_MAPS_API_KEY`, enable Maps JS API + Directions API in Google Cloud Console |
-| Simulator writes fail silently | Run seed script first — simulator expects stable doc IDs                                    |
-| No data on dashboard           | Seed the database (see step 3 above)                                                        |
-| AI assistant disabled          | Set `VITE_GEMINI_API_KEY`                                                                   |
-| Firestore permission denied    | Deploy `firestore.rules` or set test mode in Firebase Console                               |
+| Symptom                                          | Cause                                       | Fix                                                     |
+| ------------------------------------------------ | ------------------------------------------- | ------------------------------------------------------- |
+| Blank white screen                               | Missing BrowserRouter                       | Replace `main.tsx`                                      |
+| No data, skeletons spin forever                  | Firestore not seeded OR subscription error  | Check browser console; run `python seed_firestore.py`   |
+| Alerts show 0                                    | Anonymous auth disabled                     | Enable in Firebase Console (see above)                  |
+| `firebase deploy` fails                          | Missing `firestore.indexes.json`            | Add the new file                                        |
+| "Missing or insufficient permissions" in console | Firestore rules not deployed                | Run `firebase deploy --only firestore`                  |
+| Simulator writes don't change anything           | Mismatch between seed IDs and simulator IDs | Use the fixed `seed_firestore.py` which uses stable IDs |

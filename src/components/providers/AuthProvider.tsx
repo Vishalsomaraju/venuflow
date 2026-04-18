@@ -1,45 +1,56 @@
-import { useEffect } from 'react';
-import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-import { useAuthStore } from '@/store/authStore';
-import { getDocument, setDocument } from '@/lib/db';
-import type { User as AppUser } from '@/types';
+// src/components/providers/AuthProvider.tsx
+import { useEffect } from 'react'
+import { onAuthStateChanged, signInAnonymously } from 'firebase/auth'
+import { auth } from '@/lib/firebase'
+import { useAuthStore } from '@/store/authStore'
+import { getDocument, setDocument } from '@/lib/db'
+import type { User as AppUser } from '@/types'
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const { setUser, setAppUser, setLoading } = useAuthStore();
+  const { setUser, setAppUser, setLoading } = useAuthStore()
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      setUser(firebaseUser);
-      
       if (firebaseUser) {
-        // Fetch or create user document
-        const userDoc = await getDocument<AppUser>('users', firebaseUser.uid);
-        
+        setUser(firebaseUser)
+
+        // Fetch or create Firestore user document
+        const userDoc = await getDocument<AppUser>('users', firebaseUser.uid)
+
         if (userDoc) {
-          setAppUser(userDoc);
+          setAppUser(userDoc)
         } else {
-          // Create new user record
           const newUser: AppUser = {
             id: firebaseUser.uid,
             email: firebaseUser.email,
-            displayName: firebaseUser.displayName || (firebaseUser.isAnonymous ? 'Guest User' : null),
-            role: 'user', // default role
+            displayName:
+              firebaseUser.displayName ??
+              (firebaseUser.isAnonymous ? 'Guest' : null),
+            role: 'user',
             createdAt: Date.now(),
-          };
-          
-          await setDocument('users', firebaseUser.uid, newUser);
-          setAppUser(newUser);
+          }
+          await setDocument('users', firebaseUser.uid, newUser)
+          setAppUser(newUser)
         }
+
+        setLoading(false)
       } else {
-        setAppUser(null);
+        // No user signed in — sign in anonymously so Firestore rules pass.
+        // This is a no-op if the user is already signing in (race-free).
+        try {
+          await signInAnonymously(auth)
+          // onAuthStateChanged will fire again with the new anonymous user.
+        } catch (err) {
+          console.error('Anonymous sign-in failed:', err)
+          setUser(null)
+          setAppUser(null)
+          setLoading(false)
+        }
       }
-      
-      setLoading(false);
-    });
+    })
 
-    return () => unsubscribe();
-  }, [setUser, setAppUser, setLoading]);
+    return () => unsubscribe()
+  }, [setUser, setAppUser, setLoading])
 
-  return <>{children}</>;
-};
+  return <>{children}</>
+}

@@ -5,7 +5,6 @@ import {
   collection,
   query,
   where,
-  orderBy,
   limit,
   onSnapshot,
   Timestamp,
@@ -40,30 +39,24 @@ export interface VenueStats {
 
 // ─── Store State Interface ────────────────────────────────────────
 interface VenueState {
-  // Core real-time data
   zones: Zone[]
   facilities: Facility[]
   alerts: Alert[]
 
-  // Connection and lifecycle
   isSubscribed: boolean
   isConnected: boolean
   lastSyncAt: Date | null
   subscriptionError: string | null
 
-  // Internal subscription handles
   _unsubscribers: Unsubscribe[]
 
-  // ── Mutations ──
   setZones: (zones: Zone[]) => void
   setFacilities: (facilities: Facility[]) => void
   setAlerts: (alerts: Alert[]) => void
 
-  // ── Subscription Lifecycle ──
   subscribe: () => void
   unsubscribe: () => void
 
-  // ── Derived Computations ──
   getStats: () => VenueStats
   getZoneById: (id: string) => Zone | undefined
   getFacilitiesByZone: (zoneId: string) => Facility[]
@@ -76,7 +69,7 @@ interface VenueState {
   getOpenGatesCount: () => number
 }
 
-// ─── Congestion priority for sorting ──────────────────────────────
+// ─── Congestion priority ──────────────────────────────────────────
 const CONGESTION_PRIORITY: Record<CongestionLevel, number> = {
   low: 0,
   medium: 1,
@@ -87,7 +80,6 @@ const CONGESTION_PRIORITY: Record<CongestionLevel, number> = {
 // ─── Timestamp conversion helper ──────────────────────────────────
 function convertDoc<T>(id: string, data: DocumentData): T {
   const converted: Record<string, unknown> = { id }
-
   for (const [key, value] of Object.entries(data)) {
     if (value instanceof Timestamp) {
       converted[key] = value.toDate()
@@ -95,14 +87,12 @@ function convertDoc<T>(id: string, data: DocumentData): T {
       converted[key] = value
     }
   }
-
   return converted as T
 }
 
-// ─── Store Creation ───────────────────────────────────────────────
+// ─── Store ────────────────────────────────────────────────────────
 export const useVenueStore = create<VenueState>()(
   subscribeWithSelector((set, get) => ({
-    // ── Initial State ──
     zones: [],
     facilities: [],
     alerts: [],
@@ -112,7 +102,6 @@ export const useVenueStore = create<VenueState>()(
     subscriptionError: null,
     _unsubscribers: [],
 
-    // ── Mutations ──
     setZones: (zones) =>
       set({
         zones,
@@ -121,93 +110,81 @@ export const useVenueStore = create<VenueState>()(
         subscriptionError: null,
       }),
 
-    setFacilities: (facilities) =>
-      set({
-        facilities,
-        lastSyncAt: new Date(),
-      }),
+    setFacilities: (facilities) => set({ facilities, lastSyncAt: new Date() }),
 
-    setAlerts: (alerts) =>
-      set({
-        alerts,
-        lastSyncAt: new Date(),
-      }),
+    setAlerts: (alerts) => set({ alerts, lastSyncAt: new Date() }),
 
-    // ── Subscribe to all Firestore collections ──
     subscribe: () => {
       const { isSubscribed, _unsubscribers: existing } = get()
+      if (isSubscribed) return
 
-      // Prevent duplicate subscriptions
-      if (isSubscribed) {
-        console.warn('⚠️ VenueStore: Already subscribed')
-        return
-      }
-
-      // Clean up any stale subscriptions
-      existing.forEach((unsub) => unsub())
-
+      existing.forEach((u) => u())
       const unsubs: Unsubscribe[] = []
 
-      // 1. Zones — real-time
-      const zonesUnsub = onSnapshot(
-        collection(db, 'zones'),
-        (snapshot) => {
-          const zones = snapshot.docs.map((doc) =>
-            convertDoc<Zone>(doc.id, doc.data())
-          )
-          get().setZones(zones)
-        },
-        (error) => {
-          console.error('❌ Zones snapshot error:', error)
-          set({
-            subscriptionError: `Zones: ${error.message}`,
-            isConnected: false,
-          })
-        }
+      // ── 1. Zones ──────────────────────────────────────────────────
+      unsubs.push(
+        onSnapshot(
+          collection(db, 'zones'),
+          (snap) => {
+            const zones = snap.docs.map((d) => convertDoc<Zone>(d.id, d.data()))
+            get().setZones(zones)
+          },
+          (err) => {
+            console.error('Zones error:', err.message)
+            set({
+              subscriptionError: `Zones: ${err.message}`,
+              isConnected: false,
+            })
+          }
+        )
       )
-      unsubs.push(zonesUnsub)
 
-      // 2. Facilities — real-time
-      const facilitiesUnsub = onSnapshot(
-        collection(db, 'facilities'),
-        (snapshot) => {
-          const facilities = snapshot.docs.map((doc) =>
-            convertDoc<Facility>(doc.id, doc.data())
-          )
-          get().setFacilities(facilities)
-        },
-        (error) => {
-          console.error('❌ Facilities snapshot error:', error)
-          set({
-            subscriptionError: `Facilities: ${error.message}`,
-          })
-        }
+      // ── 2. Facilities ─────────────────────────────────────────────
+      unsubs.push(
+        onSnapshot(
+          collection(db, 'facilities'),
+          (snap) => {
+            const facilities = snap.docs.map((d) =>
+              convertDoc<Facility>(d.id, d.data())
+            )
+            get().setFacilities(facilities)
+          },
+          (err) => {
+            console.error('Facilities error:', err.message)
+            set({ subscriptionError: `Facilities: ${err.message}` })
+          }
+        )
       )
-      unsubs.push(facilitiesUnsub)
 
-      // 3. Active alerts — ordered, limited
-      const alertsQuery = query(
-        collection(db, 'alerts'),
-        where('active', '==', true),
-        orderBy('createdAt', 'desc'),
-        limit(10)
+      // ── 3. Alerts ─────────────────────────────────────────────────
+      // NOTE: NO orderBy here — avoids requiring a composite Firestore index.
+      // We sort client-side by createdAt instead.
+      unsubs.push(
+        onSnapshot(
+          query(
+            collection(db, 'alerts'),
+            where('active', '==', true),
+            limit(50)
+          ),
+          (snap) => {
+            const alerts = snap.docs
+              .map((d) => convertDoc<Alert>(d.id, d.data()))
+              // Sort newest first, client-side
+              .sort((a, b) => {
+                const aTime =
+                  a.createdAt instanceof Date ? a.createdAt.getTime() : 0
+                const bTime =
+                  b.createdAt instanceof Date ? b.createdAt.getTime() : 0
+                return bTime - aTime
+              })
+            get().setAlerts(alerts)
+          },
+          (err) => {
+            console.error('Alerts error:', err.message)
+            set({ subscriptionError: `Alerts: ${err.message}` })
+          }
+        )
       )
-      const alertsUnsub = onSnapshot(
-        alertsQuery,
-        (snapshot) => {
-          const alerts = snapshot.docs.map((doc) =>
-            convertDoc<Alert>(doc.id, doc.data())
-          )
-          get().setAlerts(alerts)
-        },
-        (error) => {
-          console.error('❌ Alerts snapshot error:', error)
-          set({
-            subscriptionError: `Alerts: ${error.message}`,
-          })
-        }
-      )
-      unsubs.push(alertsUnsub)
 
       set({
         _unsubscribers: unsubs,
@@ -217,78 +194,60 @@ export const useVenueStore = create<VenueState>()(
       })
     },
 
-    // ── Unsubscribe from all listeners ──
     unsubscribe: () => {
-      const { _unsubscribers } = get()
-
-      _unsubscribers.forEach((unsub) => {
+      get()._unsubscribers.forEach((u) => {
         try {
-          unsub()
-        } catch (err) {
-          console.warn('Unsubscribe error:', err)
+          u()
+        } catch (_) {
+          /* ignore */
         }
       })
-
-      set({
-        _unsubscribers: [],
-        isSubscribed: false,
-        isConnected: false,
-      })
+      set({ _unsubscribers: [], isSubscribed: false, isConnected: false })
     },
 
-    // ── Derived: Full stats object ──
+    // ── Derived stats ──────────────────────────────────────────────
     getStats: (): VenueStats => {
       const { zones, facilities, alerts } = get()
 
       const totalAttendees = zones.reduce(
-        (sum, z) => sum + (z.currentCount || 0),
+        (s, z) => s + (z.currentCount || 0),
         0
       )
-      const totalCapacity = zones.reduce(
-        (sum, z) => sum + (z.capacity || 0),
-        0
-      )
+      const totalCapacity = zones.reduce((s, z) => s + (z.capacity || 0), 0)
       const occupancyPercent =
         totalCapacity > 0
           ? Math.round((totalAttendees / totalCapacity) * 100)
           : 0
 
-      // Average wait across open facilities
       const openFacilities = facilities.filter((f) => f.isOpen)
       const averageWaitTime =
         openFacilities.length > 0
           ? Math.round(
-              openFacilities.reduce((sum, f) => sum + f.waitMinutes, 0) /
+              openFacilities.reduce((s, f) => s + f.waitMinutes, 0) /
                 openFacilities.length
             )
           : 0
 
-      // Gate counts
       const gates = facilities.filter((f) => f.type === 'gate')
       const openGatesCount = gates.filter((f) => f.isOpen).length
       const totalGatesCount = gates.length
 
-      // Congestion analysis
-      const sortedByCongestion = [...zones].sort(
+      const sorted = [...zones].sort(
         (a, b) =>
           CONGESTION_PRIORITY[b.congestionLevel] -
           CONGESTION_PRIORITY[a.congestionLevel]
       )
-      const mostCongestedZone = sortedByCongestion[0] ?? null
-      const leastCongestedZone =
-        sortedByCongestion[sortedByCongestion.length - 1] ?? null
-
+      const mostCongestedZone = sorted[0] ?? null
+      const leastCongestedZone = sorted[sorted.length - 1] ?? null
       const criticalZoneCount = zones.filter(
         (z) => z.congestionLevel === 'critical'
       ).length
 
-      // Alert breakdown
       const activeAlertCount = alerts.length
       const criticalAlertCount = alerts.filter(
         (a) => a.severity === 'critical'
       ).length
 
-      // Congestion distribution
       const congestionBreakdown = zones.reduce(
         (acc, z) => {
           acc[z.congestionLevel] = (acc[z.congestionLevel] || 0) + 1
@@ -300,7 +259,6 @@ export const useVenueStore = create<VenueState>()(
         >
       )
 
-      // Facility type distribution
       const facilityBreakdown = facilities.reduce(
         (acc, f) => {
           acc[f.type] = (acc[f.type] || 0) + 1
@@ -326,51 +284,44 @@ export const useVenueStore = create<VenueState>()(
       }
     },
 
-    // ── Derived: Lookups ──
     getZoneById: (id) => get().zones.find((z) => z.id === id),
-
     getFacilitiesByZone: (zoneId) =>
       get().facilities.filter((f) => f.zoneId === zoneId),
-
     getFacilitiesByType: (type) =>
       get().facilities.filter((f) => f.type === type),
-
     getAlertsByZone: (zoneId) =>
       get().alerts.filter((a) => a.zoneId === zoneId),
 
     getMostCongestedZone: () => {
       const { zones } = get()
-      if (zones.length === 0) return null
-
-      return [...zones].sort(
-        (a, b) =>
-          CONGESTION_PRIORITY[b.congestionLevel] -
-          CONGESTION_PRIORITY[a.congestionLevel]
-      )[0] ?? null
-    },
-
-    getLeastCongestedZone: () => {
-      const { zones } = get()
-      if (zones.length === 0) return null
-
-      return [...zones].sort(
-        (a, b) =>
-          CONGESTION_PRIORITY[a.congestionLevel] -
-          CONGESTION_PRIORITY[b.congestionLevel]
-      )[0] ?? null
-    },
-
-    getTotalAttendees: () =>
-      get().zones.reduce((sum, z) => sum + (z.currentCount || 0), 0),
-
-    getAverageWaitTime: () => {
-      const open = get().facilities.filter((f) => f.isOpen)
-      if (open.length === 0) return 0
-      return Math.round(
-        open.reduce((sum, f) => sum + f.waitMinutes, 0) / open.length
+      if (!zones.length) return null
+      return (
+        [...zones].sort(
+          (a, b) =>
+            CONGESTION_PRIORITY[b.congestionLevel] -
+            CONGESTION_PRIORITY[a.congestionLevel]
+        )[0] ?? null
       )
     },
-
+    getLeastCongestedZone: () => {
+      const { zones } = get()
+      if (!zones.length) return null
+      return (
+        [...zones].sort(
+          (a, b) =>
+            CONGESTION_PRIORITY[a.congestionLevel] -
+            CONGESTION_PRIORITY[b.congestionLevel]
+        )[0] ?? null
+      )
+    },
+    getTotalAttendees: () =>
+      get().zones.reduce((s, z) => s + (z.currentCount || 0), 0),
+    getAverageWaitTime: () => {
+      const open = get().facilities.filter((f) => f.isOpen)
+      return open.length
+        ? Math.round(open.reduce((s, f) => s + f.waitMinutes, 0) / open.length)
+        : 0
+    },
     getOpenGatesCount: () =>
       get().facilities.filter((f) => f.type === 'gate' && f.isOpen).length,
   }))
