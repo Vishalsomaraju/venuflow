@@ -167,7 +167,7 @@ function EmptyState({
       </div>
 
       <div className="space-y-1">
-        <h3 className="text-lg font-bold text-text-primary">{ASSISTANT_NAME}</h3>
+        <h2 className="text-lg font-bold text-text-primary">{ASSISTANT_NAME}</h2>
         <p className="text-sm text-text-secondary max-w-xs">
           Ask me anything about the current crowd, wait times, or how to navigate the venue.
         </p>
@@ -217,10 +217,35 @@ export function Assistant(): React.JSX.Element {
 
   const hasMessages = messages.length > 0
 
+  const [localInput, setLocalInput] = useState(input)
+
+  // Debounce the local input to the store
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setInput(localInput)
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [localInput, setInput])
+
+  // Sync down when cleared externally (e.g. after submit)
+  useEffect(() => {
+    if (input === '') setLocalInput('')
+  }, [input])
+
   // Auto-scroll to bottom whenever messages change
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, bottomRef])
+
+  const handleLocalKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      // Use localInput immediately on enter
+      void submit(localInput)
+    } else {
+      handleKeyDown(e)
+    }
+  }
 
   return (
     <div className="flex flex-col h-full max-w-3xl mx-auto w-full">
@@ -299,12 +324,16 @@ export function Assistant(): React.JSX.Element {
       {/* ── Input bar ────────────────────────────────────────── */}
       <div className="relative flex items-center gap-2 shrink-0">
         <div className="relative flex-1">
+          <label htmlFor="assistant-message-input" className="sr-only">
+            Ask the VenueFlow assistant a question
+          </label>
           <input
+            id="assistant-message-input"
             ref={inputRef}
             type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
+            value={localInput}
+            onChange={(e) => setLocalInput(e.target.value)}
+            onKeyDown={handleLocalKeyDown}
             placeholder={isConfigured ? ASSISTANT_PLACEHOLDER_ACTIVE : ASSISTANT_PLACEHOLDER_INACTIVE}
             disabled={!isConfigured || isStreaming}
             aria-label="Message input"
@@ -332,8 +361,8 @@ export function Assistant(): React.JSX.Element {
         </div>
 
         <button
-          onClick={() => void submit(input)}
-          disabled={!isConfigured || isStreaming || !input.trim()}
+          onClick={() => void submit(localInput)}
+          disabled={!isConfigured || isStreaming || !localInput.trim()}
           aria-label="Send message"
           className={cn(
             'h-12 w-12 rounded-2xl flex items-center justify-center shrink-0',

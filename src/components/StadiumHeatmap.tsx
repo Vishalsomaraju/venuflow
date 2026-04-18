@@ -176,9 +176,9 @@ function ZoneTooltip({
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div>
-          <h4 className="font-semibold text-text-primary text-sm">
+          <p className="font-semibold text-text-primary text-sm">
             {zone.name}
-          </h4>
+          </p>
           <span
             className="inline-flex items-center gap-1 text-xs mt-0.5 font-medium"
             style={{ color: CONGESTION_FILL[zone.congestionLevel] }}
@@ -443,9 +443,13 @@ export function StadiumHeatmap() {
                   }
                 }}
                 style={{ cursor: zone ? 'pointer' : 'default' }}
-                role="button"
+                role="img"
                 tabIndex={zone ? 0 : -1}
-                aria-label={`View details for ${shape.name}`}
+                aria-label={
+                  zone
+                    ? `${zone.name}: ${CONGESTION_LABEL[zone.congestionLevel]} congestion, ${zone.currentCount.toLocaleString()} attendees`
+                    : `${shape.name}: no live congestion data available`
+                }
                 className="outline-none focus-visible:stroke-accent focus-visible:stroke-2"
               >
                 {/* Zone fill */}

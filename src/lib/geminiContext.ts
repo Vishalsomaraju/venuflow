@@ -11,6 +11,22 @@ export interface VenueSnapshot {
   totalCapacity: number
 }
 
+export function buildGeminiContext(
+  zones: Zone[],
+  facilities: Facility[],
+  alerts: Alert[]
+): string {
+  const totalAttendees = zones.reduce((sum, z) => sum + z.currentCount, 0)
+  const totalCapacity = zones.reduce((sum, z) => sum + z.capacity, 0)
+  return buildVenueSystemPrompt({
+    zones,
+    facilities,
+    alerts,
+    totalAttendees,
+    totalCapacity
+  })
+}
+
 export function buildVenueSystemPrompt(snapshot: VenueSnapshot): string {
   const { zones, facilities, alerts, totalAttendees, totalCapacity } = snapshot
   const occupancyPct =

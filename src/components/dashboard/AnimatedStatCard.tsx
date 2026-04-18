@@ -1,4 +1,5 @@
 // src/components/dashboard/AnimatedStatCard.tsx
+import { memo } from 'react'
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 import type { LucideIcon } from 'lucide-react'
@@ -33,7 +34,7 @@ const trendConfig = {
   stable: { Icon: Minus, color: 'text-text-muted' },
 }
 
-export function AnimatedStatCard({
+function AnimatedStatCardInner({
   icon: Icon,
   label,
   numericValue,
@@ -113,3 +114,5 @@ export function AnimatedStatCard({
     </motion.div>
   )
 }
+
+export const AnimatedStatCard = memo(AnimatedStatCardInner)

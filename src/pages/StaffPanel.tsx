@@ -81,7 +81,7 @@ function SectionCard({
           <Icon className="h-4 w-4" style={{ color: iconColor }} />
         </div>
         <div>
-          <h3 className="text-sm font-bold text-text-primary">{title}</h3>
+          <h2 className="text-sm font-bold text-text-primary">{title}</h2>
           {subtitle && <p className="text-xs text-text-muted mt-0.5">{subtitle}</p>}
         </div>
       </div>
@@ -160,7 +160,10 @@ function ZoneOverrideSection({ onActivity }: { onActivity: (e: ActivityEntry) =>
                 </div>
 
                 {/* Congestion slider */}
-                <div className="space-y-1.5">
+                  <div className="space-y-1.5">
+                  <label htmlFor={`zone-congestion-${zone.id}`} className="sr-only">
+                    Set congestion level for {zone.name}
+                  </label>
                   <div className="flex justify-between text-[10px] text-text-muted">
                     {CONGESTION_OPTIONS.map((o) => (
                       <span key={o.value} style={{ color: currentVal >= CONGESTION_VALUES[o.value] ? o.color : undefined }}>
@@ -169,6 +172,7 @@ function ZoneOverrideSection({ onActivity }: { onActivity: (e: ActivityEntry) =>
                     ))}
                   </div>
                   <input
+                    id={`zone-congestion-${zone.id}`}
                     type="range"
                     min={0}
                     max={3}
@@ -234,7 +238,7 @@ function BroadcastAlertSection({ onActivity }: { onActivity: (e: ActivityEntry) 
       <div className="space-y-4">
         {/* Severity */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-secondary uppercase tracking-wide">Severity</label>
+          <p className="text-xs font-semibold text-text-secondary uppercase tracking-wide">Severity</p>
           <div className="grid grid-cols-3 gap-2">
             {(Object.keys(SEVERITY_CONFIG) as AlertSeverity[]).map((s) => {
               const c = SEVERITY_CONFIG[s]!
@@ -259,9 +263,10 @@ function BroadcastAlertSection({ onActivity }: { onActivity: (e: ActivityEntry) 
 
         {/* Zone selector */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-secondary uppercase tracking-wide">Zone (optional)</label>
+          <label htmlFor="broadcast-zone" className="text-xs font-semibold text-text-secondary uppercase tracking-wide">Zone (optional)</label>
           <div className="relative">
             <select
+              id="broadcast-zone"
               value={selectedZone}
               onChange={(e) => setSelectedZone(e.target.value)}
               className="w-full appearance-none rounded-xl border border-surface-border bg-surface-light px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/40"
@@ -277,8 +282,9 @@ function BroadcastAlertSection({ onActivity }: { onActivity: (e: ActivityEntry) 
 
         {/* Message */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-text-secondary uppercase tracking-wide">Message</label>
+          <label htmlFor="broadcast-message" className="text-xs font-semibold text-text-secondary uppercase tracking-wide">Message</label>
           <textarea
+            id="broadcast-message"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Type alert message…"
@@ -402,15 +408,18 @@ function FacilityControlsSection({ onActivity }: { onActivity: (e: ActivityEntry
                 <div className="flex items-center gap-1.5 shrink-0">
                   {isEditing ? (
                     <>
+                      <label htmlFor={`facility-wait-${f.id}`} className="sr-only">
+                        Wait time for {f.name}
+                      </label>
                       <input
+                        id={`facility-wait-${f.id}`}
                         type="number"
                         min={0}
                         max={120}
                         value={editingWait[f.id]}
                         onChange={(e) => setEditingWait((prev) => ({ ...prev, [f.id]: e.target.value }))}
-                        className="w-14 rounded-lg border border-accent/40 bg-surface px-2 py-1 text-xs text-text-primary focus:outline-none text-center"
+                        className="w-14 rounded-lg border border-accent/40 bg-surface px-2 py-1 text-xs text-text-primary focus:outline-none focus:ring-2 focus:ring-accent/40 text-center"
                         autoFocus
-                        aria-label={`Wait time for ${f.name}`}
                       />
                       <button
                         onClick={() => handleWaitSave(f.id, f.name)}

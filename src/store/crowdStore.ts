@@ -99,7 +99,7 @@ export const useCrowdStore = create<CrowdState>((set, get) => ({
       collection(db, 'alerts'),
       where('active', '==', true),
       orderBy('createdAt', 'desc'),
-      limit(20)
+      limit(10)
     )
     const alertsUnsub = onSnapshot(
       alertsQuery,
@@ -119,14 +119,12 @@ export const useCrowdStore = create<CrowdState>((set, get) => ({
     unsubs.push(alertsUnsub)
 
     set({ _unsubscribers: unsubs, isConnected: true })
-    console.log('📡 Real-time subscriptions active')
   },
 
   unsubscribe: () => {
     const { _unsubscribers } = get()
     _unsubscribers.forEach((unsub) => unsub())
     set({ _unsubscribers: [], isConnected: false })
-    console.log('📡 Real-time subscriptions stopped')
   },
 
   getZoneById: (id) => get().zones.find((z) => z.id === id),

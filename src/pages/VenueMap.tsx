@@ -1,5 +1,5 @@
 // src/pages/VenueMap.tsx
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { StadiumHeatmap } from '@/components/StadiumHeatmap'
 import { GoogleMapView } from '@/components/GoogleMap'
 import { RoutingPanel } from '@/components/RoutingPanel'
@@ -30,6 +30,9 @@ function MiniStat({
   value: string
   iconBg: string
 }) {
+  const isLiveMetric =
+    label === 'Attendees' || label === 'Avg Wait Time' || label === 'Active Alerts'
+
   return (
     <div className="flex items-center gap-2">
       <div className={cn('rounded-lg p-1.5', iconBg)}>
@@ -39,7 +42,10 @@ function MiniStat({
         <p className="text-[10px] text-text-muted leading-none uppercase tracking-wide">
           {label}
         </p>
-        <p className="text-sm font-bold text-text-primary leading-snug tabular-nums">
+        <p
+          className="text-sm font-bold text-text-primary leading-snug tabular-nums"
+          {...(isLiveMetric ? { role: 'status', 'aria-live': 'polite' as const } : {})}
+        >
           {value}
         </p>
       </div>
@@ -51,8 +57,10 @@ export function VenueMap() {
   const [activeTab, setActiveTab] = useState<Tab>('map')
   const [panelOpen, setPanelOpen] = useState(true)
   const { stats } = useVenueStats({ refreshInterval: 3000 })
-  const criticalZones = useVenueStore((s) =>
-    s.zones.filter((z) => z.congestionLevel === 'critical')
+  const zones = useVenueStore((s) => s.zones)
+  const criticalZones = useMemo(
+    () => zones.filter((z) => z.congestionLevel === 'critical'),
+    [zones]
   )
 
   return (
@@ -100,7 +108,11 @@ export function VenueMap() {
 
         {/* ── Critical zone banner ─────────────────────────── */}
         {criticalZones.length > 0 && (
-          <div className="flex items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/5 px-4 py-2.5">
+          <div
+            className="flex items-center gap-3 rounded-xl border border-red-500/30 bg-red-500/5 px-4 py-2.5"
+            role="alert"
+            aria-live="assertive"
+          >
             <span className="relative flex h-2 w-2 shrink-0">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />

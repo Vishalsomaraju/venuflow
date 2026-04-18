@@ -169,10 +169,6 @@ export function startSimulation(
   const finalConfig = { ...DEFAULT_CONFIG, ...config }
   tickCount = 0
 
-  console.log(
-    `🎮 Crowd simulation started (interval: ${finalConfig.intervalMs}ms, volatility: ${finalConfig.volatility})`
-  )
-
   // Run first tick immediately
   simulateTick(finalConfig).catch(console.error)
 
@@ -186,7 +182,6 @@ export function stopSimulation(): void {
     clearInterval(simulationInterval)
     simulationInterval = null
     tickCount = 0
-    console.log('🎮 Crowd simulation stopped')
   }
 }
 

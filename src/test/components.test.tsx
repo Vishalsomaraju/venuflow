@@ -153,8 +153,8 @@ describe('ZoneCongestionGrid', () => {
     expect(screen.getByTestId('badge-success')).toBeInTheDocument()
   })
 
-  it('shows skeletons when zones array is empty', async () => {
-    mockStoreState = makeMockVenueStore({ zones: [] })
+  it('shows skeletons when zones array is empty and not connected', async () => {
+    mockStoreState = makeMockVenueStore({ zones: [], isConnected: false })
     const { ZoneCongestionGrid } = await import('@/components/dashboard/ZoneCongestionGrid')
     render(<ZoneCongestionGrid />)
     const skeletons = screen.getAllByTestId('skeleton')

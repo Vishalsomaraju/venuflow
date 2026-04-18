@@ -13,7 +13,7 @@ export function Admin() {
 
   // Redirect if not admin
   if (role !== 'admin') {
-    return <Navigate to="/dashboard" replace />
+    return <Navigate to="/" replace />
   }
 
   const handleSeed = async () => {
@@ -47,9 +47,9 @@ export function Admin() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Database className="h-5 w-5 text-accent" />
-              <h3 className="text-lg font-semibold text-text-primary">
+              <h2 className="text-lg font-semibold text-text-primary">
                 Data Seeding
-              </h3>
+              </h2>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -72,9 +72,9 @@ export function Admin() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Cpu className="h-5 w-5 text-purple-400" />
-              <h3 className="text-lg font-semibold text-text-primary">
+              <h2 className="text-lg font-semibold text-text-primary">
                 Live Simulator
-              </h3>
+              </h2>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -93,9 +93,9 @@ export function Admin() {
         <CardHeader>
           <div className="flex items-center gap-2">
             <ShieldAlert className="h-5 w-5 text-red-500" />
-            <h3 className="text-lg font-semibold text-red-400">
+            <h2 className="text-lg font-semibold text-red-400">
               Danger Zone
-            </h3>
+            </h2>
           </div>
         </CardHeader>
         <CardContent>

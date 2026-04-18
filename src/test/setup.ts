@@ -38,6 +38,9 @@ Object.defineProperty(window, 'matchMedia', {
   }),
 })
 
+// ── Mock scrollIntoView (jsdom doesn't have it) ──────────────────
+window.HTMLElement.prototype.scrollIntoView = function() {}
+
 // ── Mock IntersectionObserver ────────────────────────────────────
 class MockIntersectionObserver {
   observe() {}

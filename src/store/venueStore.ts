@@ -190,7 +190,7 @@ export const useVenueStore = create<VenueState>()(
         collection(db, 'alerts'),
         where('active', '==', true),
         orderBy('createdAt', 'desc'),
-        limit(50)
+        limit(10)
       )
       const alertsUnsub = onSnapshot(
         alertsQuery,
@@ -215,8 +215,6 @@ export const useVenueStore = create<VenueState>()(
         isConnected: true,
         subscriptionError: null,
       })
-
-      console.log('📡 VenueStore: Subscribed to 3 Firestore collections')
     },
 
     // ── Unsubscribe from all listeners ──
@@ -236,8 +234,6 @@ export const useVenueStore = create<VenueState>()(
         isSubscribed: false,
         isConnected: false,
       })
-
-      console.log('📡 VenueStore: Unsubscribed from all collections')
     },
 
     // ── Derived: Full stats object ──

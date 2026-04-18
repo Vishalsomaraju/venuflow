@@ -2,7 +2,7 @@
 // Pure utility functions — no Firebase, no Zustand.
 // Designed to be easily unit-tested.
 
-import type { CongestionLevel, Facility } from '@/types'
+import type { CongestionLevel, Facility, Zone } from '@/types'
 
 // ─── 1. Congestion level calculator ──────────────────────────────
 /**
@@ -71,6 +71,52 @@ export function findNearestOpenFacility(
   }
 
   return nearest
+}
+
+// ─── 4. Filter open facilities ────────────────────────────────────
+/**
+ * Returns only facilities where isOpen is true
+ */
+export function getOpenFacilities(facilities: Facility[]): Facility[] {
+  return facilities.filter((f) => f.isOpen)
+}
+
+// ─── 5. Least congested gate ──────────────────────────────────────
+/**
+ * Returns the gate located in the zone with the lowest congestion level.
+ * Falls back to finding the gate with the lowest wait time if zones are equal.
+ */
+export function getLeastCongestedGate(
+  zones: Zone[],
+  facilities: Facility[]
+): Facility | null {
+  const gates = facilities.filter((f) => f.type === 'gate' && f.isOpen)
+  if (gates.length === 0) return null
+
+  // Priority mapping
+  const congestionScore: Record<CongestionLevel, number> = {
+    low: 0,
+    medium: 1,
+    high: 2,
+    critical: 3,
+  }
+
+  let bestGate = gates[0]!
+  let bestScore = Infinity
+  let bestWait = Infinity
+
+  for (const gate of gates) {
+    const zone = zones.find((z) => z.id === gate.zoneId)
+    const score = zone ? congestionScore[zone.congestionLevel] : congestionScore.low
+    
+    if (score < bestScore || (score === bestScore && gate.waitMinutes < bestWait)) {
+      bestScore = score
+      bestWait = gate.waitMinutes
+      bestGate = gate
+    }
+  }
+
+  return bestGate
 }
 
 // ─── 4. Badge variant helper ──────────────────────────────────────

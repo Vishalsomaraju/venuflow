@@ -263,7 +263,11 @@ export function GoogleMapView() {
     <div className="relative flex flex-col h-full gap-3">
       {/* ── Map canvas ───────────────────────────────────── */}
       <div className="relative flex-1 min-h-[340px] rounded-2xl overflow-hidden border border-surface-border">
-        <div ref={mapDivRef} className="w-full h-full" />
+        <div
+          ref={mapDivRef}
+          className="w-full h-full"
+          aria-label="Interactive venue map showing crowd density"
+        />
 
         {/* Loading overlay */}
         {isLoading && (
@@ -335,8 +339,9 @@ export function GoogleMapView() {
             <button
               onClick={() => setActiveMarkerInfo(null)}
               className="text-text-muted hover:text-text-primary transition-colors"
+              aria-label="Close facility details"
             >
-              <X className="h-4 w-4" />
+              <X className="h-4 w-4" aria-hidden="true" />
             </button>
           </div>
         </div>

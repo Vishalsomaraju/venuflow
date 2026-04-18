@@ -1,5 +1,5 @@
 // src/components/RoutingPanel.tsx
-import { useState, useMemo } from 'react'
+import { useState, useMemo, memo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useVenueStore } from '@/store/venueStore'
 import { useRoutingContext } from '@/context/RoutingContext'
@@ -126,7 +126,7 @@ function RouteResultCard({
 }
 
 // ─── Facility row ─────────────────────────────────────────────────
-function FacilityRow({
+const FacilityRow = memo(function FacilityRow({
   facility,
   allFacilities,
   routeState,
@@ -200,7 +200,7 @@ function FacilityRow({
       </button>
     </motion.div>
   )
-}
+})
 
 // ─── Main component ───────────────────────────────────────────────
 export function RoutingPanel() {
@@ -299,7 +299,7 @@ export function RoutingPanel() {
     <div className="flex flex-col h-full gap-4 min-h-0">
       {/* ── Header ──────────────────────────────────────── */}
       <div>
-        <h3 className="text-base font-bold text-text-primary">Routing Panel</h3>
+        <h2 className="text-base font-bold text-text-primary">Routing Panel</h2>
         <p className="text-xs text-text-muted mt-0.5">Navigate to any facility</p>
       </div>
 
