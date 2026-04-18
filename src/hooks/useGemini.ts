@@ -1,3 +1,6 @@
+// Google Service: Gemini AI (@google/generative-ai)
+// Purpose: Powers the AI Assistant that answers user queries based on real-time venue context.
+// Docs: https://ai.google.dev/docs
 // src/hooks/useGemini.ts
 // Thin wrapper around @google/generative-ai for streaming chat.
 

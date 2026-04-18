@@ -1,3 +1,6 @@
+// Google Service: Firebase (Auth, Firestore, Hosting)
+// Purpose: Provides authentication, real-time database, and hosting for the venue application.
+// Docs: https://firebase.google.com/docs
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';

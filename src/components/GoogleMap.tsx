@@ -1,3 +1,6 @@
+// Google Service: Google Maps JavaScript API & Directions API
+// Purpose: Renders the interactive stadium map and provides routing to the least congested gates.
+// Docs: https://developers.google.com/maps/documentation/javascript/overview
 // src/components/GoogleMap.tsx
 import { useEffect, useRef, useCallback, useState } from 'react'
 import { useVenueStore } from '@/store/venueStore'
