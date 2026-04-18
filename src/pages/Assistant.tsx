@@ -227,11 +227,6 @@ export function Assistant(): React.JSX.Element {
     return () => clearTimeout(timer)
   }, [localInput, setInput])
 
-  // Sync down when cleared externally (e.g. after submit)
-  useEffect(() => {
-    if (input === '') setLocalInput('')
-  }, [input])
-
   // Auto-scroll to bottom whenever messages change
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -242,6 +237,7 @@ export function Assistant(): React.JSX.Element {
       e.preventDefault()
       // Use localInput immediately on enter
       void submit(localInput)
+      setLocalInput('')
     } else {
       handleKeyDown(e)
     }
@@ -271,7 +267,7 @@ export function Assistant(): React.JSX.Element {
 
         {hasMessages && (
           <button
-            onClick={clearChat}
+            onClick={() => { clearChat(); setLocalInput('') }}
             aria-label="Start a new chat"
             className="flex items-center gap-1.5 rounded-xl border border-surface-border bg-surface px-3 py-2 text-xs font-medium text-text-secondary hover:text-text-primary transition-colors"
           >
@@ -304,7 +300,7 @@ export function Assistant(): React.JSX.Element {
         {(hasMessages ? SUGGESTED_QUESTIONS.slice(0, 4) : SUGGESTED_QUESTIONS).map((q) => (
           <button
             key={q}
-            onClick={() => void submit(q)}
+            onClick={() => { void submit(q); setLocalInput('') }}
             disabled={isStreaming || !isConfigured}
             className={cn(
               'whitespace-nowrap rounded-full border border-surface-border bg-surface',
@@ -361,7 +357,7 @@ export function Assistant(): React.JSX.Element {
         </div>
 
         <button
-          onClick={() => void submit(localInput)}
+          onClick={() => { void submit(localInput); setLocalInput('') }}
           disabled={!isConfigured || isStreaming || !localInput.trim()}
           aria-label="Send message"
           className={cn(

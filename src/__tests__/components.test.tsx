@@ -8,7 +8,7 @@ import { Users } from 'lucide-react'
 import { useVenueStore } from '../store/venueStore'
 
 vi.mock('../hooks/useAnimatedCounter', () => ({
-  useAnimatedCounter: ({ value, format = (n: number) => Math.round(n).toLocaleString() }: any) => format(value)
+  useAnimatedCounter: ({ value, format = (n: number) => Math.round(n).toLocaleString() }: { value: number, format?: (n: number) => string }) => format(value)
 }))
 
 vi.mock('../hooks/useAssistant', () => ({

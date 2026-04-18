@@ -1,10 +1,9 @@
 import { Suspense, lazy } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Sidebar } from '@/components/layout/Sidebar'
-import { Dashboard } from '@/pages/Dashboard'
-import { Assistant } from '@/pages/Assistant'
-import { Admin } from '@/pages/Admin'
-
+const Dashboard = lazy(() => import('@/pages/Dashboard').then(m => ({ default: m.Dashboard })))
+const Assistant = lazy(() => import('@/pages/Assistant').then(m => ({ default: m.Assistant })))
+const Admin = lazy(() => import('@/pages/Admin').then(m => ({ default: m.Admin })))
 const VenueMap = lazy(() => import('@/pages/VenueMap').then(m => ({ default: m.VenueMap })))
 const StaffPanel = lazy(() => import('@/pages/StaffPanel').then(m => ({ default: m.StaffPanel })))
 import { useAuthStore } from '@/store/authStore'

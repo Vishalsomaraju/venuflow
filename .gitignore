@@ -13,6 +13,8 @@ dist-ssr
 *.local
 .env
 .env.local
+serviceAccountKey.json
+.firebase
 
 # Editor directories and files
 .vscode/*
@@ -24,3 +26,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+seed_firestore.py
+serviceAccountKey.json
+firebase.json
+firestore.rules
+.firestore.indexes.json
