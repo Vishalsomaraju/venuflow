@@ -123,7 +123,7 @@ export function RecentAlerts() {
           </motion.div>
         ) : (
           <AnimatePresence mode="popLayout" initial={false}>
-            <div className="space-y-2">
+            <div className="space-y-2" aria-live="polite">
               {recent.map((alert) => {
                 const config =
                   severityConfig[alert.severity as AlertSeverity] ??

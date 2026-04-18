@@ -1,10 +1,10 @@
-// src/App.tsx
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Dashboard } from '@/pages/Dashboard'
 import { VenueMap } from '@/pages/VenueMap'
 import { Assistant } from '@/pages/Assistant'
 import { Admin } from '@/pages/Admin'
+import { StaffPanel } from '@/pages/StaffPanel'
 import { useAuthStore } from '@/store/authStore'
 import { useVenueSubscription } from '@/hooks/useVenueSubscription'
 import { useSimulationCleanup } from '@/hooks/useSimulationCleanup'
@@ -29,21 +29,25 @@ export default function App() {
 
   return (
     <div className={cn('flex h-screen bg-primary-bg text-text-primary')}>
+      {/* ── Skip to main content (WCAG 2.4.1) ─────────────── */}
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+
       <Sidebar />
-      <main className="flex-1 overflow-y-auto">
+      <main
+        id="main-content"
+        className="flex-1 overflow-y-auto"
+        aria-label="Main content"
+        tabIndex={-1}
+      >
         <div className="p-6">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/map" element={<VenueMap />} />
             <Route path="/assistant" element={<Assistant />} />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedAdminRoute>
-                  <Admin />
-                </ProtectedAdminRoute>
-              }
-            />
+            <Route path="/admin" element={<ProtectedAdminRoute><Admin /></ProtectedAdminRoute>} />
+            <Route path="/staff" element={<ProtectedAdminRoute><StaffPanel /></ProtectedAdminRoute>} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </div>

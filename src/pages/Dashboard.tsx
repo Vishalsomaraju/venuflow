@@ -1,4 +1,3 @@
-// src/pages/Dashboard.tsx
 import { useAuthStore } from '@/store/authStore'
 import { useVenueStats } from '@/hooks/useVenueStats'
 import { useIsConnected, useMostCongestedZone } from '@/hooks/useVenueSelectors'
@@ -18,8 +17,10 @@ import {
   Wifi,
   WifiOff,
   MapPin,
+  KeyRound,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 
 // ─── Section header ───────────────────────────────────────────────
 function SectionHeader({
@@ -42,6 +43,9 @@ function SectionHeader({
 // ─── Dashboard ───────────────────────────────────────────────────
 export function Dashboard() {
   const { appUser, user } = useAuthStore()
+  const { elevateToStaff } = useAuthStore()
+  const isStaff = useAuthStore((s) => s.isStaff())
+  const navigate = useNavigate()
   const role = appUser?.role ?? 'guest'
   const isConnected = useIsConnected()
   const mostCongested = useMostCongestedZone()
@@ -318,11 +322,29 @@ export function Dashboard() {
       {lastSyncAt && (
         <p className="text-xs text-text-muted text-center pb-4">
           Last sync:{' '}
-          <span className="tabular-nums">
-            {lastSyncAt.toLocaleTimeString()}
-          </span>{' '}
+          <span className="tabular-nums">{lastSyncAt.toLocaleTimeString()}</span>{' '}
           · Stats refresh every 2s
         </p>
+      )}
+
+      {/* ── Secret staff mode button ────────────────────── */}
+      {!isStaff && (
+        <div className="fixed bottom-6 right-6 z-40">
+          <button
+            onClick={() => { elevateToStaff(); navigate('/staff') }}
+            className={cn(
+              'flex items-center gap-2 rounded-full border border-surface-border bg-surface/80',
+              'backdrop-blur-sm px-3 py-2 text-xs text-text-muted',
+              'hover:border-accent/40 hover:text-accent transition-all duration-200 shadow-lg',
+              'opacity-30 hover:opacity-100'
+            )}
+            title="Enter Staff Mode"
+            aria-label="Enter Staff Mode"
+          >
+            <KeyRound className="h-3.5 w-3.5" aria-hidden="true" />
+            Staff Mode
+          </button>
+        </div>
       )}
     </div>
   )

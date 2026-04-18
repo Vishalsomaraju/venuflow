@@ -1,18 +1,21 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Map, MessageSquareText, Shield, LogOut, User } from 'lucide-react';
+import { LayoutDashboard, Map, MessageSquareText, Shield, LogOut, User, ShieldCheck } from 'lucide-react';
 import { useUIStore } from '@/store/uiStore';
+import { useAuthStore } from '@/store/authStore';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const navItems = [
-  { path: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { path: '/map', icon: Map, label: 'Venue Map' },
-  { path: '/assistant', icon: MessageSquareText, label: 'Assistant' },
-  { path: '/admin', icon: Shield, label: 'Admin' },
+  { path: '/', icon: LayoutDashboard, label: 'Dashboard', staffOnly: false },
+  { path: '/map', icon: Map, label: 'Venue Map', staffOnly: false },
+  { path: '/assistant', icon: MessageSquareText, label: 'Assistant', staffOnly: false },
+  { path: '/admin', icon: Shield, label: 'Admin', staffOnly: false },
+  { path: '/staff', icon: ShieldCheck, label: 'Staff Panel', staffOnly: true },
 ];
 
 export function Sidebar() {
   const { sidebarOpen, setSidebarOpen } = useUIStore();
+  const isStaff = useAuthStore((s) => s.isStaff());
 
   return (
     <>
@@ -48,7 +51,7 @@ export function Sidebar() {
           </div>
 
           <nav className="flex flex-col gap-2 px-2">
-            {navItems.map((item) => (
+            {navItems.filter((item) => !item.staffOnly || isStaff).map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
@@ -86,13 +89,15 @@ export function Sidebar() {
           <div className={cn(
             "flex items-center px-3 py-3 rounded-md text-text-muted hover:text-text-primary cursor-pointer transition-colors",
             sidebarOpen ? "" : "justify-center"
-          )}>
+          )} aria-label="User profile">
             <div className="w-8 h-8 rounded-full bg-surface-light flex items-center justify-center shrink-0">
-              <User className="w-4 h-4 text-primary" />
+              <User className="w-4 h-4 text-primary" aria-hidden="true" />
             </div>
             <div className={cn("ml-3 overflow-hidden transition-all duration-300", sidebarOpen ? "opacity-100 w-full flex items-center justify-between" : "opacity-0 w-0")}>
               <p className="text-sm font-medium text-text-primary truncate">Staff Member</p>
-              <LogOut className="w-4 h-4 ml-auto shrink-0 text-text-muted hover:text-accent-red transition-colors" />
+              <button aria-label="Log out" className="outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-sm">
+                <LogOut className="w-4 h-4 ml-auto shrink-0 text-text-muted hover:text-accent-red transition-colors" aria-hidden="true" />
+              </button>
             </div>
           </div>
         </div>

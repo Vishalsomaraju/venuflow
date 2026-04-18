@@ -1,5 +1,5 @@
 // src/hooks/useVenueStats.ts
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useVenueStore, type VenueStats } from '@/store/venueStore'
 
 interface UseVenueStatsOptions {
@@ -7,6 +7,16 @@ interface UseVenueStatsOptions {
   refreshInterval?: number
   /** Whether to auto-refresh. Default: true */
   autoRefresh?: boolean
+}
+
+/** Return shape of useVenueStats */
+export interface UseVenueStatsResult {
+  stats: VenueStats
+  isStale: boolean
+  isConnected: boolean
+  lastComputedAt: Date | null
+  lastSyncAt: Date | null
+  refresh: () => void
 }
 
 const EMPTY_STATS: VenueStats = {
@@ -31,13 +41,16 @@ const EMPTY_STATS: VenueStats = {
  * Stats are recomputed from the live Zustand store at the specified interval,
  * ensuring components get fresh derived values even between Firestore snapshots.
  *
+ * @param options - Optional configuration for refresh interval and auto-refresh toggle.
+ * @returns An object containing stats, staleness flag, and a manual refresh function.
+ *
  * @example
  * ```tsx
  * const { stats, isStale, refresh } = useVenueStats({ refreshInterval: 3000 })
  * console.log(stats.totalAttendees, stats.mostCongestedZone?.name)
  * ```
  */
-export function useVenueStats(options: UseVenueStatsOptions = {}) {
+export function useVenueStats(options: UseVenueStatsOptions = {}): UseVenueStatsResult {
   const { refreshInterval = 2000, autoRefresh = true } = options
 
   const getStats = useVenueStore((s) => s.getStats)
@@ -46,17 +59,21 @@ export function useVenueStats(options: UseVenueStatsOptions = {}) {
 
   const [stats, setStats] = useState<VenueStats>(EMPTY_STATS)
   const [lastComputedAt, setLastComputedAt] = useState<Date | null>(null)
+  // Track the current time in state so we can compare against lastSyncAt without
+  // calling Date.now() directly during render (which violates React purity rules).
+  const [nowMs, setNowMs] = useState<number>(() => Date.now())
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const computeStats = useCallback(() => {
+  const computeStats = useCallback((): void => {
     const freshStats = getStats()
     setStats(freshStats)
     setLastComputedAt(new Date())
+    setNowMs(Date.now())
   }, [getStats])
 
   // Compute immediately when store data changes
   useEffect(() => {
-    computeStats()
+    computeStats() // eslint-disable-line react-hooks/set-state-in-effect
   }, [computeStats, lastSyncAt])
 
   // Auto-refresh on interval
@@ -73,11 +90,13 @@ export function useVenueStats(options: UseVenueStatsOptions = {}) {
     }
   }, [autoRefresh, refreshInterval, computeStats])
 
-  // Is the data potentially stale?
-  const isStale =
-    !isConnected ||
-    (lastSyncAt !== null &&
-      Date.now() - lastSyncAt.getTime() > refreshInterval * 5)
+  // Is the data potentially stale? Derived from stable state values — no impure calls.
+  const isStale = useMemo(
+    () =>
+      !isConnected ||
+      (lastSyncAt !== null && nowMs - lastSyncAt.getTime() > refreshInterval * 5),
+    [isConnected, lastSyncAt, nowMs, refreshInterval]
+  )
 
   return {
     stats,
@@ -88,3 +107,4 @@ export function useVenueStats(options: UseVenueStatsOptions = {}) {
     refresh: computeStats,
   }
 }
+

@@ -4,7 +4,7 @@ import type { CongestionLevel, AlertSeverity } from '@/types'
 
 interface BadgeProps {
   children: React.ReactNode
-  variant?: 'default' | 'success' | 'warning' | 'danger' | 'info'
+  variant?: 'default' | 'success' | 'warning' | 'danger' | 'critical' | 'info'
   className?: string
   pulse?: boolean
 }
@@ -14,6 +14,7 @@ const variantStyles = {
   success: 'bg-emerald-500/15 text-emerald-400',
   warning: 'bg-amber-500/15 text-amber-400',
   danger: 'bg-red-500/15 text-red-400',
+  critical: 'bg-red-600 text-white shadow-sm border border-red-500/50',
   info: 'bg-blue-500/15 text-blue-400',
 }
 
@@ -33,6 +34,7 @@ export function Badge({ children, variant = 'default', className, pulse }: Badge
             variant === 'success' && 'bg-emerald-400',
             variant === 'warning' && 'bg-amber-400',
             variant === 'danger' && 'bg-red-400',
+            variant === 'critical' && 'bg-white',
             variant === 'info' && 'bg-blue-400',
             variant === 'default' && 'bg-text-secondary'
           )}
@@ -50,7 +52,7 @@ export function congestionToBadgeVariant(
     case 'low': return 'success'
     case 'medium': return 'warning'
     case 'high': return 'danger'
-    case 'critical': return 'danger'
+    case 'critical': return 'critical'
     default: return 'default'
   }
 }
@@ -61,7 +63,7 @@ export function severityToBadgeVariant(
   switch (severity) {
     case 'info': return 'info'
     case 'warning': return 'warning'
-    case 'critical': return 'danger'
+    case 'critical': return 'critical'
     default: return 'default'
   }
 }

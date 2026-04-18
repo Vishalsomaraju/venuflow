@@ -66,6 +66,8 @@ export function AnimatedStatCard({
           ? 'border-red-500/40 shadow-[0_0_20px_rgba(239,68,68,0.08)]'
           : 'border-surface-border hover:border-accent/30'
       )}
+      role="status"
+      aria-live="polite"
     >
       {/* Subtle glow on hover */}
       <div

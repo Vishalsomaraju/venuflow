@@ -79,7 +79,7 @@ export function CrowdChart() {
   useEffect(() => {
     if (zones.length === 0 || history.length === 0) return
 
-    setHistory((prev) => {
+    setHistory((prev) => { // eslint-disable-line react-hooks/set-state-in-effect
       if (prev.length === 0) return prev
       const updated = [...prev]
       const last = updated[updated.length - 1]
