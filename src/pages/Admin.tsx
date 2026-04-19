@@ -50,9 +50,9 @@ export function Admin() {
               <div className="p-2 rounded-xl bg-accent/10">
                 <Database className="h-5 w-5 text-accent" />
               </div>
-              <h3 className="text-lg font-semibold text-text-primary">
+              <h2 className="text-lg font-semibold text-text-primary">
                 Data Seeding
-              </h3>
+              </h2>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -77,9 +77,9 @@ export function Admin() {
               <div className="p-2 rounded-xl bg-purple-500/10">
                 <Cpu className="h-5 w-5 text-purple-400" />
               </div>
-              <h3 className="text-lg font-semibold text-text-primary">
+              <h2 className="text-lg font-semibold text-text-primary">
                 Live Simulator
-              </h3>
+              </h2>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -99,9 +99,9 @@ export function Admin() {
             <div className="p-2 rounded-xl bg-red-500/10">
               <ShieldAlert className="h-5 w-5 text-red-400" />
             </div>
-            <h3 className="text-lg font-semibold text-red-400">
+            <h2 className="text-lg font-semibold text-red-400">
               Danger Zone
-            </h3>
+            </h2>
           </div>
         </CardHeader>
         <CardContent>

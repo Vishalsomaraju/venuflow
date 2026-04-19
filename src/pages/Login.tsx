@@ -99,15 +99,20 @@ export function Login() {
           {/* Email form */}
           <form onSubmit={handleEmail} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-text-secondary uppercase tracking-wide">
+              <label
+                htmlFor="login-email"
+                className="text-xs font-semibold text-text-secondary uppercase tracking-wide"
+              >
                 Email
               </label>
               <input
+                id="login-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="admin@venueflow.demo"
                 disabled={busy}
+                autoComplete="email"
                 className={cn(
                   'w-full rounded-xl border border-surface-border bg-surface-light',
                   'px-4 py-2.5 text-sm text-text-primary placeholder:text-text-muted',
@@ -118,16 +123,21 @@ export function Login() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-text-secondary uppercase tracking-wide">
+              <label
+                htmlFor="login-password"
+                className="text-xs font-semibold text-text-secondary uppercase tracking-wide"
+              >
                 Password
               </label>
               <div className="relative">
                 <input
+                  id="login-password"
                   type={showPw ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
                   disabled={busy}
+                  autoComplete="current-password"
                   className={cn(
                     'w-full rounded-xl border border-surface-border bg-surface-light',
                     'px-4 py-2.5 pr-10 text-sm text-text-primary placeholder:text-text-muted',
@@ -138,13 +148,14 @@ export function Login() {
                 <button
                   type="button"
                   onClick={() => setShowPw((v) => !v)}
+                  aria-label={showPw ? 'Hide password' : 'Show password'}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary"
                   tabIndex={-1}
                 >
                   {showPw ? (
-                    <EyeOff className="h-4 w-4" />
+                    <EyeOff className="h-4 w-4" aria-hidden="true" />
                   ) : (
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-4 w-4" aria-hidden="true" />
                   )}
                 </button>
               </div>

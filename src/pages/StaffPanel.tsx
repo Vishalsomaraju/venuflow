@@ -99,7 +99,7 @@ function SectionCard({
             <Icon className="h-5 w-5" style={{ color: iconColor }} />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-text-primary">{title}</h3>
+            <h2 className="text-lg font-semibold text-text-primary">{title}</h2>
             {subtitle && (
               <p className="text-sm text-text-secondary mt-0.5">{subtitle}</p>
             )}

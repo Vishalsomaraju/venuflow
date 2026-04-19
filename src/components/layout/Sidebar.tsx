@@ -51,7 +51,7 @@ export function Sidebar() {
             </span>
           </div>
 
-          <nav className="flex flex-col gap-2 px-3">
+          <nav className="flex flex-col gap-2 px-3" aria-label="Main navigation">
             {navItems.filter((item) => !item.staffOnly || isStaff).map((item) => (
               <NavLink
                 key={item.path}
@@ -67,7 +67,10 @@ export function Sidebar() {
               >
                 {({ isActive }) => (
                   <>
-                    <item.icon className={cn("w-5 h-5 shrink-0 transition-colors", isActive ? "text-primary" : "text-text-muted group-hover:text-text-primary")} />
+                    <item.icon
+                      className={cn("w-5 h-5 shrink-0 transition-colors", isActive ? "text-primary" : "text-text-muted group-hover:text-text-primary")}
+                      aria-hidden="true"
+                    />
                     <span
                       className={cn(
                         "ml-3 font-medium tracking-wide whitespace-nowrap transition-opacity duration-300",
@@ -76,6 +79,9 @@ export function Sidebar() {
                     >
                       {item.label}
                     </span>
+                    {!sidebarOpen && (
+                      <span className="sr-only">{item.label}</span>
+                    )}
                   </>
                 )}
               </NavLink>
@@ -112,7 +118,7 @@ export function Sidebar() {
       </div>
       
       {/* Mobile Tab Bar */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface/80 backdrop-blur-xl shadow-[0_-4px_24px_rgba(0,0,0,0.02)] flex justify-around items-center h-16 pb-safe">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface/80 backdrop-blur-xl shadow-[0_-4px_24px_rgba(0,0,0,0.02)] flex justify-around items-center h-16 pb-safe" role="navigation" aria-label="Mobile navigation">
         {navItems.filter((item) => !item.staffOnly || isStaff).map((item) => (
           <NavLink
             key={item.path}

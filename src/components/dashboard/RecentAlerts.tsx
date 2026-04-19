@@ -119,7 +119,11 @@ export function RecentAlerts() {
           </motion.div>
         ) : (
           <AnimatePresence mode="popLayout" initial={false}>
-            <div className="space-y-2" aria-live="polite">
+            <div
+              className="space-y-2"
+              aria-live="polite"
+              aria-label="Recent venue alerts"
+            >
               {recent.map((alert) => {
                 const config =
                   severityConfig[alert.severity as AlertSeverity] ??
@@ -139,6 +143,9 @@ export function RecentAlerts() {
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 16, height: 0 }}
                     transition={{ duration: 0.25 }}
+                    role="alert"
+                    aria-live={alert.severity === 'critical' ? 'assertive' : 'polite'}
+                    aria-atomic="true"
                     className={cn(
                       'flex items-start gap-3 rounded-xl p-3',
                       bgColor
