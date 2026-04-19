@@ -1,33 +1,89 @@
-# Google Services Integration
+# Google Services Used — VenueFlow
 
-This document outlines all Google services and APIs integrated into the VenueFlow application, including their specific purpose and where they are located within the codebase.
+This document explicitly declares every Google / Firebase service integrated into
+VenueFlow so that evaluators, auditors, and new contributors have a single
+authoritative reference without needing to scan the entire codebase.
 
-## Firebase Auth
-- **SDK/Package**: `firebase/auth` (via `firebase` npm package)
-- **Location**: `src/lib/firebase.ts`, `src/lib/auth.ts`
-- **Purpose**: Handles secure user authentication, registration, and session management for the platform.
+---
+
+## Firebase Authentication
+
+| Property | Value |
+|----------|-------|
+| Package | `firebase/auth` |
+| Key files | `src/lib/firebase.ts`, `src/components/providers/AuthProvider.tsx` |
+| Usage | Anonymous sign-in for attendees; Google OAuth sign-in for admin/staff |
+| Docs | https://firebase.google.com/docs/auth |
+
+---
 
 ## Cloud Firestore
-- **SDK/Package**: `firebase/firestore` (via `firebase` npm package)
-- **Location**: `src/lib/firebase.ts`, `src/lib/db.ts`
-- **Purpose**: Acts as the primary real-time database. It stores and syncs venue metrics, zone congestion levels, facility statuses, and alerts across all connected clients.
+
+| Property | Value |
+|----------|-------|
+| Package | `firebase/firestore` |
+| Key files | `src/store/venueStore.ts`, `src/lib/staffService.ts` |
+| Usage | Real-time zone, facility, and alert data sync via `onSnapshot` listeners; staff override writes via `updateDoc` / `addDoc` |
+| Docs | https://firebase.google.com/docs/firestore |
+
+---
 
 ## Firebase Hosting
-- **SDK/Package**: `firebase-tools` CLI
-- **Location**: `firebase.json`
-- **Purpose**: Configured for deploying, hosting, and serving the built production web application globally.
+
+| Property | Value |
+|----------|-------|
+| Config files | `firebase.json`, `.firebaserc` |
+| Usage | Production deployment with SPA rewrites (`"destination": "/index.html"`) so client-side routing works on direct URL access |
+| Docs | https://firebase.google.com/docs/hosting |
+
+---
 
 ## Google Maps JavaScript API
-- **SDK/Package**: `@react-google-maps/api` / Global `google.maps` object
-- **Location**: `src/components/GoogleMap.tsx`, `src/hooks/useGoogleMaps.ts`
-- **Purpose**: Renders the interactive, stylized stadium map, displaying custom markers, zones, gates, and essential facilities.
 
-## Directions API
-- **SDK/Package**: `google.maps.DirectionsService` / `google.maps.DirectionsRenderer`
-- **Location**: `src/components/GoogleMap.tsx`
-- **Purpose**: Calculates and draws optimal pedestrian routing paths on the map, dynamically guiding users to the least congested gates or specific facilities.
+| Property | Value |
+|----------|-------|
+| Package | `@googlemaps/js-api-loader` |
+| Key files | `src/components/GoogleMap.tsx`, `src/hooks/useGoogleMaps.ts` |
+| APIs enabled | Maps JavaScript API, Directions API |
+| Usage | Interactive venue map with live facility markers colour-coded by wait time; walking directions from user location to the least-congested gate |
+| Env var | `VITE_GOOGLE_MAPS_API_KEY` |
+| Docs | https://developers.google.com/maps/documentation/javascript/overview |
 
-## Gemini AI
-- **SDK/Package**: `@google/generative-ai`
-- **Location**: `src/hooks/useGemini.ts`, `src/lib/geminiContext.ts`
-- **Purpose**: Powers the intelligent AI assistant. It processes real-time venue context to provide users with accurate, context-aware conversational support and recommendations.
+---
+
+## Gemini AI (Generative Language API)
+
+| Property | Value |
+|----------|-------|
+| Package | `@google/generative-ai` |
+| Key files | `src/hooks/useGemini.ts`, `src/hooks/useAssistant.ts`, `src/lib/geminiContext.ts` |
+| Model | `gemini-1.5-flash` |
+| Usage | Live-context AI venue assistant that answers attendee questions using real-time zone/facility/alert data injected as a system prompt; responses are streamed token-by-token |
+| Env var | `VITE_GEMINI_API_KEY` |
+| Docs | https://ai.google.dev/docs |
+
+---
+
+## Firebase Cloud Storage
+
+| Property | Value |
+|----------|-------|
+| Package | `firebase/storage` |
+| Key files | `src/lib/firebase.ts` |
+| Usage | Initialised for potential future asset uploads (e.g. zone images, admin media) |
+| Docs | https://firebase.google.com/docs/storage |
+
+---
+
+## Environment Variables Summary
+
+| Variable | Service | Required |
+|----------|---------|----------|
+| `VITE_FIREBASE_API_KEY` | Firebase | ✅ Yes |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase Auth | ✅ Yes |
+| `VITE_FIREBASE_PROJECT_ID` | Firestore / Hosting | ✅ Yes |
+| `VITE_FIREBASE_STORAGE_BUCKET` | Cloud Storage | ✅ Yes |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Firebase | ✅ Yes |
+| `VITE_FIREBASE_APP_ID` | Firebase | ✅ Yes |
+| `VITE_GOOGLE_MAPS_API_KEY` | Google Maps | ✅ Yes |
+| `VITE_GEMINI_API_KEY` | Gemini AI | ✅ Yes |

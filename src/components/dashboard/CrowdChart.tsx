@@ -1,5 +1,5 @@
 // src/components/dashboard/CrowdChart.tsx
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useVenueStore } from '@/store/venueStore'
 import { Card, CardHeader, CardContent } from '@/components/ui/Card'
 import { Activity } from 'lucide-react'
@@ -35,8 +35,6 @@ const MAX_DATA_POINTS = 30
 export function CrowdChart() {
   const zones = useVenueStore((s) => s.zones)
   const [history, setHistory] = useState<ChartDataPoint[]>([])
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const zonesLoadedRef = useRef(false)
 
   // Capture snapshots of zone data over time
   useEffect(() => {
@@ -59,27 +57,16 @@ export function CrowdChart() {
       })
     }
 
-    // Only set up interval once when zones first load
-    if (!zonesLoadedRef.current) {
-      zonesLoadedRef.current = true
-      captureSnapshot()
-      intervalRef.current = setInterval(captureSnapshot, 5000)
-    }
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
-        zonesLoadedRef.current = false
-      }
-    }
-  }, [zones.length > 0]) // eslint-disable-line react-hooks/exhaustive-deps
+    captureSnapshot()
+    const id = setInterval(captureSnapshot, 5000)
+    return () => clearInterval(id)
+  }, [zones])
 
   // Update latest data point when zones change
   useEffect(() => {
     if (zones.length === 0 || history.length === 0) return
 
-    setHistory((prev) => { // eslint-disable-line react-hooks/set-state-in-effect
+    setHistory((prev) => {
       if (prev.length === 0) return prev
       const updated = [...prev]
       const last = updated[updated.length - 1]
@@ -93,7 +80,7 @@ export function CrowdChart() {
       updated[updated.length - 1] = lastPoint
       return updated
     })
-  }, [zones]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [zones, history.length])
 
   const zoneNames = zones.map((z) => z.name)
 

@@ -5,38 +5,37 @@ service cloud.firestore {
     function isSignedIn() {
       return request.auth != null;
     }
-
-    function userRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    function isAdmin() {
+      return isSignedIn() &&
+        request.auth.token.role == 'admin';
+    }
+    function isStaff() {
+      return isSignedIn() && (
+        request.auth.token.role == 'admin' ||
+        request.auth.token.role == 'staff'
+      );
     }
 
-    function isStaffOrAdmin() {
-      return isSignedIn() && userRole() in ['staff', 'admin'];
+    match /zones/{zoneId} {
+      allow read: if true;
+      allow write: if isStaff();
     }
-
-    // Zones — fully public read
-    match /zones/{id} {
-      allow read:  if true;
-      allow write: if isStaffOrAdmin();
+    match /facilities/{facilityId} {
+      allow read: if true;
+      allow write: if isStaff();
     }
-
-    // Facilities — fully public read
-    match /facilities/{id} {
-      allow read:  if true;
-      allow write: if isStaffOrAdmin();
+    match /alerts/{alertId} {
+      allow read: if isSignedIn();
+      allow create: if isStaff();
+      allow update, delete: if isAdmin();
     }
-
-    // Alerts — any signed-in user (anonymous counts)
-    match /alerts/{id} {
-      allow read:  if isSignedIn();
-      allow write: if isStaffOrAdmin();
+    match /users/{userId} {
+      allow read, write: if isSignedIn() &&
+        request.auth.uid == userId;
     }
-
-    // Users
-    match /users/{uid} {
-      allow read:  if isSignedIn() && (request.auth.uid == uid || isStaffOrAdmin());
-      allow create: if isSignedIn() && request.auth.uid == uid;
-      allow update: if isSignedIn() && request.auth.uid == uid;
+    // Deny everything else
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

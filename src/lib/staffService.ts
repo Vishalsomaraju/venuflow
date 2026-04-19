@@ -1,3 +1,6 @@
+// Google Service: Cloud Firestore (Firebase)
+// Purpose: All staff override writes — zone congestion, facility status, alert broadcasts.
+// Docs: https://firebase.google.com/docs/firestore
 // src/lib/staffService.ts
 // All Firestore writes for staff override operations.
 

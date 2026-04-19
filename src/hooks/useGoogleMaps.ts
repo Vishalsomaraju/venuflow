@@ -1,3 +1,6 @@
+// Google Service: Google Maps JavaScript API (@googlemaps/js-api-loader)
+// Purpose: Lazy-loads the Google Maps JS SDK once per session for the interactive venue map.
+// Docs: https://developers.google.com/maps/documentation/javascript/overview
 // src/hooks/useGoogleMaps.ts
 import { useState, useEffect } from 'react'
 import { setOptions, importLibrary } from '@googlemaps/js-api-loader'

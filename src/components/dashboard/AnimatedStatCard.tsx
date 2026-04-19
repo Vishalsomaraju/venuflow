@@ -69,6 +69,8 @@ function AnimatedStatCardInner({
       )}
       role="status"
       aria-live="polite"
+      aria-atomic="true"
+      aria-label={`${label}: ${display}${unit ? ' ' + unit : ''}`}
     >
       {/* Subtle glow on hover */}
       <div

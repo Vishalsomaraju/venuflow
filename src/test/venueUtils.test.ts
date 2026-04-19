@@ -6,6 +6,7 @@ import {
   calcCongestionLevel,
   sortFacilitiesByWait,
   findNearestOpenFacility,
+  formatWaitTime,
 } from '@/lib/venueUtils'
 import { mockFacilities } from './mocks/venueStore'
 import type { Facility } from '@/types'
@@ -39,6 +40,10 @@ describe('calcCongestionLevel', () => {
   it('returns "low" for zero or negative capacity', () => {
     expect(calcCongestionLevel(100, 0)).toBe('low')
     expect(calcCongestionLevel(0, 0)).toBe('low')
+  })
+
+  it('calcCongestionLevel returns low for negative capacity', () => {
+    expect(calcCongestionLevel(100, -1)).toBe('low')
   })
 })
 
@@ -128,4 +133,14 @@ describe('findNearestOpenFacility', () => {
   it('returns null for empty facilities array', () => {
     expect(findNearestOpenFacility(userLat, userLng, [])).toBeNull()
   })
+})
+
+// ─── Test: formatWaitTime util ────────────────────────────────────
+describe('formatWaitTime', () => {
+  it('returns "No wait" for 0', () =>
+    expect(formatWaitTime(0)).toBe('No wait'))
+  it('formats minutes under 60', () =>
+    expect(formatWaitTime(15)).toBe('15 min'))
+  it('formats hours and minutes', () =>
+    expect(formatWaitTime(90)).toBe('1h 30m'))
 })

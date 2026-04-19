@@ -12,6 +12,10 @@ export default defineConfig({
     css: false,
     coverage: {
       reporter: ['text', 'lcov'],
+      thresholds: {
+        functions: 70,
+        lines: 70,
+      },
     },
   },
   resolve: {

@@ -73,7 +73,7 @@ export function useVenueStats(options: UseVenueStatsOptions = {}): UseVenueStats
 
   // Compute immediately when store data changes
   useEffect(() => {
-    computeStats() // eslint-disable-line react-hooks/set-state-in-effect
+    computeStats()
   }, [computeStats, lastSyncAt])
 
   // Auto-refresh on interval
@@ -82,11 +82,20 @@ export function useVenueStats(options: UseVenueStatsOptions = {}): UseVenueStats
 
     intervalRef.current = setInterval(computeStats, refreshInterval)
 
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
+    const handleVisibility = () => {
+      if (document.hidden) {
+        clearInterval(intervalRef.current!)
         intervalRef.current = null
+      } else {
+        intervalRef.current = setInterval(computeStats, refreshInterval)
       }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibility)
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility)
+      if (intervalRef.current) clearInterval(intervalRef.current)
     }
   }, [autoRefresh, refreshInterval, computeStats])
 

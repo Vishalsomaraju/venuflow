@@ -161,3 +161,40 @@ describe('ZoneCongestionGrid', () => {
     expect(skeletons.length).toBeGreaterThan(0)
   })
 })
+
+// ─────────────────────────────────────────────────────────────────
+// Test 6: Assistant Component
+// ─────────────────────────────────────────────────────────────────
+describe('Assistant', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.resetModules()
+  })
+
+  it('disables send button while streaming', async () => {
+    vi.doMock('@/hooks/useAssistant', () => ({
+      useAssistant: () => ({
+        messages: [],
+        input: 'test input',
+        setInput: vi.fn(),
+        isStreaming: true,
+        isConfigured: true,
+        contextLine: '',
+        inputRef: { current: null },
+        bottomRef: { current: null },
+        submit: vi.fn(),
+        clearChat: vi.fn(),
+        handleCopy: vi.fn(),
+        handleKeyDown: vi.fn(),
+      }),
+    }))
+
+    const { Assistant } = await import('@/pages/Assistant')
+    const { unmount } = render(<Assistant />)
+    
+    const button = screen.getByLabelText(/Send message/i)
+    expect(button).toBeDisabled()
+    
+    unmount()
+  })
+})

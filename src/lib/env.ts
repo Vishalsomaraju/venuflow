@@ -8,8 +8,10 @@ const requiredEnvVars = [
 export function validateEnv() {
   const missing = requiredEnvVars.filter(
     (key) => !import.meta.env[key]
-  );
-  if (missing.length > 0) {
-    console.error(`Missing environment variables: ${missing.join(', ')}`);
+  )
+  if (missing.length > 0 && import.meta.env.DEV) {
+    // Only log in dev, never in prod
+    console.warn(`[VenueFlow] Missing env vars: ${missing.join(', ')}`)
   }
+  return missing
 }

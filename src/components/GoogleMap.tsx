@@ -269,7 +269,8 @@ export function GoogleMapView() {
         <div
           ref={mapDivRef}
           className="w-full h-full"
-          aria-label="Interactive venue map showing crowd density"
+          role="application"
+          aria-label="Interactive venue map showing live crowd density and facility locations"
         />
 
         {/* Loading overlay */}

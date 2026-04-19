@@ -45,3 +45,11 @@ export function formatWaitTime(minutes: number): string {
   const mins = minutes % 60
   return `${hrs}h ${mins}m`
 }
+
+export function sanitizeInput(raw: string): string {
+  return raw
+    .replace(/[<>]/g, '')        // strip HTML
+    .replace(/\{.*?\}/g, '')     // strip template injections
+    .trim()
+    .slice(0, 500)               // hard length cap
+}

@@ -447,8 +447,8 @@ export function StadiumHeatmap() {
                 tabIndex={zone ? 0 : -1}
                 aria-label={
                   zone
-                    ? `${zone.name}: ${CONGESTION_LABEL[zone.congestionLevel]} congestion, ${zone.currentCount.toLocaleString()} attendees`
-                    : `${shape.name}: no live congestion data available`
+                    ? `${shape.name}: ${zone.congestionLevel} congestion, ${zone.currentCount.toLocaleString()} of ${zone.capacity.toLocaleString()} attendees`
+                    : `${shape.name}: no data`
                 }
                 className="outline-none focus-visible:stroke-accent focus-visible:stroke-2"
               >

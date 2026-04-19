@@ -99,8 +99,8 @@ export const useVenueStore = create<VenueState>()(
       get()._unsubscribers.forEach((u) => {
         try {
           u()
-        } catch (_) {
-          /* */
+        } catch (err) {
+          console.warn('[VenueStore] Unsubscribe error:', err)
         }
       })
 

@@ -1,5 +1,5 @@
 // src/components/dashboard/ZoneCongestionGrid.tsx
-import { memo, useMemo } from 'react'
+import React, { useMemo } from 'react'
 import { useVenueStore } from '@/store/venueStore'
 import { Badge, congestionToBadgeVariant } from '@/components/ui/Badge'
 import { ZoneCardSkeleton } from '@/components/ui/Skeleton'
@@ -45,7 +45,7 @@ const PRIORITY: Record<CongestionLevel, number> = {
 }
 
 // ─── Memoized ZoneCard ────────────────────────────────────────────
-const ZoneCard = memo(function ZoneCard({
+const ZoneCard = React.memo(function ZoneCard({
   zone,
   isConnected,
 }: {
@@ -111,7 +111,7 @@ const ZoneCard = memo(function ZoneCard({
       </div>
     </motion.div>
   )
-})
+}, (prev, next) => prev.zone.currentCount === next.zone.currentCount && prev.zone.capacity === next.zone.capacity && prev.zone.congestionLevel === next.zone.congestionLevel && prev.isConnected === next.isConnected)
 
 // ─── Container ────────────────────────────────────────────────────
 export function ZoneCongestionGrid() {

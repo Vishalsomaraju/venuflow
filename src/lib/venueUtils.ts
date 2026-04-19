@@ -45,6 +45,8 @@ export function sortFacilitiesByWait(
  * Given a user's lat/lng and an array of facilities (with location),
  * returns the nearest *open* facility of the specified type.
  * Uses Euclidean distance (fine for short distances within a stadium).
+ *
+ * @param type - Optional facility type filter. Pass undefined to search all types.
  */
 export function findNearestOpenFacility(
   userLat: number,

@@ -9,23 +9,7 @@ import { useState, useRef, useCallback, useMemo } from 'react'
 import { useVenueStore } from '@/store/venueStore'
 import { useGemini } from '@/hooks/useGemini'
 import { buildVenueSystemPrompt, buildQuickContextLine } from '@/lib/geminiContext'
-
-// ─── Security Helpers ───────────────────────────────────────────────
-
-/** Maximum allowed length for a single chat message sent to Gemini */
-const MAX_INPUT_LENGTH = 500
-
-/**
- * Strips HTML/script tags and trims whitespace from user input before it
- * is forwarded to the Gemini API. Prevents prompt-injection via markup.
- */
-function sanitizeInput(raw: string): string {
-  return raw
-    .replace(/<[^>]*>/g, '')   // strip HTML/XML tags
-    .replace(/&[a-z]+;/gi, '') // strip HTML entities
-    .trim()
-    .slice(0, MAX_INPUT_LENGTH)
-}
+import { sanitizeInput } from '@/lib/utils'
 
 // ─── Types ─────────────────────────────────────────────────────────
 

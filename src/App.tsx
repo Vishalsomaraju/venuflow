@@ -1,8 +1,11 @@
 // src/App.tsx
+import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { Dashboard } from '@/pages/Dashboard'
-import { VenueMap } from '@/pages/VenueMap'
+const VenueMap = lazy(() =>
+  import('@/pages/VenueMap').then(m => ({ default: m.VenueMap }))
+)
 import { Assistant } from '@/pages/Assistant'
 import { Admin } from '@/pages/Admin'
 import { StaffPanel } from '@/pages/StaffPanel'
@@ -52,7 +55,11 @@ function AuthenticatedApp() {
         <div className="p-6">
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/map" element={<VenueMap />} />
+            <Route path="/map" element={
+              <Suspense fallback={<div className="p-6 text-text-muted">Loading map...</div>}>
+                <VenueMap />
+              </Suspense>
+            } />
             <Route path="/assistant" element={<Assistant />} />
             <Route
               path="/admin"

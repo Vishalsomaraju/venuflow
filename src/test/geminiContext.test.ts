@@ -71,6 +71,14 @@ describe('buildVenueSystemPrompt', () => {
     const prompt = buildVenueSystemPrompt(noAlertSnapshot)
     expect(prompt).toContain('None currently active')
   })
+
+  it('handles empty zones array gracefully', () => {
+    const prompt = buildVenueSystemPrompt({
+      zones: [], facilities: [], alerts: [],
+      totalAttendees: 0, totalCapacity: 0,
+    })
+    expect(prompt).toContain('No zone data available')
+  })
 })
 
 describe('buildQuickContextLine', () => {
