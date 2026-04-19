@@ -29,8 +29,8 @@ interface AnimatedStatCardProps {
 }
 
 const trendConfig = {
-  up: { Icon: TrendingUp, color: 'text-emerald-400' },
-  down: { Icon: TrendingDown, color: 'text-red-400' },
+  up: { Icon: TrendingUp, color: 'text-accent-green' },
+  down: { Icon: TrendingDown, color: 'text-accent-red' },
   stable: { Icon: Minus, color: 'text-text-muted' },
 }
 
@@ -60,12 +60,12 @@ function AnimatedStatCardInner({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay, ease: 'easeOut' }}
       className={cn(
-        'group relative rounded-2xl border bg-surface p-5',
+        'group relative rounded-2xl bg-surface/80 backdrop-blur-xl p-5',
         'flex items-center gap-4 overflow-hidden',
-        'transition-colors duration-300',
+        'transition-all duration-300 shadow-[0_4px_24px_rgba(0,0,0,0.02)]',
         highlight
-          ? 'border-red-500/40 shadow-[0_0_20px_rgba(239,68,68,0.08)]'
-          : 'border-surface-border hover:border-accent/30'
+          ? 'shadow-[0_4px_24px_rgba(244,63,94,0.1)] ring-1 ring-accent-red/20'
+          : 'hover:shadow-[0_8px_32px_rgba(0,0,0,0.04)] ring-1 ring-surface-border/50'
       )}
       role="status"
       aria-live="polite"
@@ -74,15 +74,15 @@ function AnimatedStatCardInner({
       <div
         className={cn(
           'absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500',
-          'bg-gradient-to-br from-accent/5 to-transparent pointer-events-none'
+          'bg-gradient-to-br from-primary/5 to-transparent pointer-events-none'
         )}
       />
 
       {/* Icon badge */}
       <div
         className={cn(
-          'relative z-10 rounded-xl p-3 shrink-0',
-          'transition-transform duration-200 group-hover:scale-110',
+          'relative z-10 rounded-xl p-3 shrink-0 shadow-sm',
+          'transition-transform duration-300 group-hover:scale-105',
           iconBg
         )}
       >
@@ -91,9 +91,9 @@ function AnimatedStatCardInner({
 
       {/* Content */}
       <div className="relative z-10 min-w-0 flex-1">
-        <p className="text-sm text-text-secondary truncate">{label}</p>
-        <div className="flex items-baseline gap-1">
-          <span className="text-2xl font-bold text-text-primary tabular-nums">
+        <p className="text-sm font-medium tracking-wide uppercase text-text-muted truncate">{label}</p>
+        <div className="flex items-baseline gap-1 mt-1">
+          <span className="text-3xl font-bold tracking-tight text-text-primary tabular-nums">
             {display}
           </span>
           {unit && (
@@ -101,14 +101,14 @@ function AnimatedStatCardInner({
           )}
         </div>
         {subtitle && (
-          <p className="text-xs text-text-muted mt-0.5 truncate">{subtitle}</p>
+          <p className="text-xs font-medium text-text-muted mt-1 truncate">{subtitle}</p>
         )}
       </div>
 
       {/* Trend indicator */}
       {TrendIcon && trend && (
         <div className={cn('shrink-0', trendConfig[trend].color)}>
-          <TrendIcon className="h-4 w-4" />
+          <TrendIcon className="h-5 w-5" />
         </div>
       )}
     </motion.div>

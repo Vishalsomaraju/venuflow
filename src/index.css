@@ -3,8 +3,40 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Light Mode */
+    --color-primary-bg: #F8FAFC;
+    --color-surface: #FFFFFF;
+    --color-surface-light: #F1F5F9;
+    --color-surface-border: rgba(226, 232, 240, 0.5); /* subtle border */
+    
+    --color-primary: #3B82F6;
+    --color-primary-hover: #2563EB;
+    --color-primary-light: #DBEAFE;
+
+    --color-text-primary: #0F172A;
+    --color-text-secondary: #475569;
+    --color-text-muted: #94A3B8;
+  }
+
+  .dark {
+    /* Dark Mode */
+    --color-primary-bg: #0B0E14;
+    --color-surface: #12161F;
+    --color-surface-light: #1A202C;
+    --color-surface-border: rgba(45, 55, 72, 0.5); /* subtle border */
+    
+    --color-primary: #3B82F6;
+    --color-primary-hover: #60A5FA;
+    --color-primary-light: #1E3A8A;
+
+    --color-text-primary: #F8FAFC;
+    --color-text-secondary: #94A3B8;
+    --color-text-muted: #64748B;
+  }
+
   body {
-    @apply bg-primary-bg text-text-primary font-sans antialiased;
+    @apply bg-primary-bg text-text-primary font-sans antialiased transition-colors duration-300;
   }
 
   /* ── Global focus-visible ring ──────────────────────────────── */

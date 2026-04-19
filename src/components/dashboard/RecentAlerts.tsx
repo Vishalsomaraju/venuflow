@@ -16,29 +16,25 @@ const severityConfig: Record<
     Icon: typeof Info
     iconColor: string
     bgColor: string
-    borderColor: string
     badgeVariant: 'info' | 'warning' | 'danger'
   }
 > = {
   info: {
     Icon: Info,
     iconColor: 'text-blue-400',
-    bgColor: 'bg-blue-500/8',
-    borderColor: 'border-blue-500/20',
+    bgColor: 'bg-blue-500/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] backdrop-blur-sm',
     badgeVariant: 'info',
   },
   warning: {
     Icon: AlertTriangle,
     iconColor: 'text-amber-400',
-    bgColor: 'bg-amber-500/8',
-    borderColor: 'border-amber-500/20',
+    bgColor: 'bg-amber-500/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] backdrop-blur-sm',
     badgeVariant: 'warning',
   },
   critical: {
     Icon: XCircle,
     iconColor: 'text-red-400',
-    bgColor: 'bg-red-500/8',
-    borderColor: 'border-red-500/20',
+    bgColor: 'bg-red-500/10 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)] backdrop-blur-sm',
     badgeVariant: 'danger',
   },
 }
@@ -128,8 +124,7 @@ export function RecentAlerts() {
                 const config =
                   severityConfig[alert.severity as AlertSeverity] ??
                   severityConfig.info
-                const { Icon, iconColor, bgColor, borderColor, badgeVariant } =
-                  config
+                const { Icon, iconColor, bgColor, badgeVariant } = config
 
                 const timeAgo =
                   alert.createdAt instanceof Date
@@ -145,9 +140,8 @@ export function RecentAlerts() {
                     exit={{ opacity: 0, x: 16, height: 0 }}
                     transition={{ duration: 0.25 }}
                     className={cn(
-                      'flex items-start gap-3 rounded-xl border p-3',
-                      bgColor,
-                      borderColor
+                      'flex items-start gap-3 rounded-xl p-3',
+                      bgColor
                     )}
                   >
                     {/* Icon */}

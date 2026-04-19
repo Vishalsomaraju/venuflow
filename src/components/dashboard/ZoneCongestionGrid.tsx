@@ -10,17 +10,17 @@ import type { CongestionLevel, Zone } from '@/types'
 
 // ─── Colour maps ──────────────────────────────────────────────────
 const barColor: Record<CongestionLevel, string> = {
-  low: 'bg-emerald-500',
-  medium: 'bg-amber-500',
+  low: 'bg-accent-green',
+  medium: 'bg-accent-amber',
   high: 'bg-orange-500',
-  critical: 'bg-red-600',
+  critical: 'bg-accent-red',
 }
 
 const cardGlow: Record<CongestionLevel, string> = {
-  low: '',
-  medium: '',
-  high: 'shadow-[0_0_18px_rgba(249,115,22,0.12)]',
-  critical: 'shadow-[0_0_24px_rgba(239,68,68,0.18)] border-red-500/30',
+  low: 'hover:shadow-[0_8px_32px_rgba(16,185,129,0.05)] ring-1 ring-surface-border/50',
+  medium: 'hover:shadow-[0_8px_32px_rgba(245,158,11,0.05)] ring-1 ring-surface-border/50',
+  high: 'shadow-[0_0_24px_rgba(245,158,11,0.1)] ring-1 ring-accent-amber/30',
+  critical: 'shadow-[0_0_32px_rgba(244,63,94,0.15)] ring-1 ring-accent-red/40 bg-accent-red/5',
 }
 
 const congestionLabel: Record<CongestionLevel, string> = {
@@ -61,26 +61,26 @@ const ZoneCard = memo(function ZoneCard({
       variants={cardVariants}
       layout
       className={cn(
-        'group relative rounded-2xl border border-surface-border bg-surface p-4',
-        'transition-all duration-300 hover:border-accent/25',
+        'group relative rounded-2xl bg-surface/80 backdrop-blur-xl p-5',
+        'transition-all duration-300',
         cardGlow[zone.congestionLevel]
       )}
     >
       {isCritical && (
-        <span className="absolute -top-px -right-px h-3 w-3">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-60" />
-          <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500" />
+        <span className="absolute -top-1 -right-1 h-4 w-4 flex items-center justify-center">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-accent-red opacity-60" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-accent-red" />
         </span>
       )}
 
-      <div className="flex items-start justify-between mb-3">
+      <div className="flex items-start justify-between mb-4">
         <div>
-          <h3 className="font-semibold text-text-primary text-sm leading-snug">
+          <h3 className="font-semibold text-text-primary text-base tracking-tight leading-snug">
             {zone.name}
           </h3>
-          <p className="text-xs text-text-muted mt-0.5">
-            {zone.currentCount.toLocaleString()} /{' '}
-            {zone.capacity.toLocaleString()} capacity
+          <p className="text-xs font-medium text-text-muted mt-1 tracking-wide uppercase">
+            <span className="text-text-primary tabular-nums font-semibold">{zone.currentCount.toLocaleString()}</span> /{' '}
+            <span className="tabular-nums">{zone.capacity.toLocaleString()}</span> cap
           </p>
         </div>
         <Badge variant={congestionToBadgeVariant(zone.congestionLevel)} pulse={isCritical}>
@@ -88,7 +88,7 @@ const ZoneCard = memo(function ZoneCard({
         </Badge>
       </div>
 
-      <div className="h-2 rounded-full bg-surface-light overflow-hidden mb-2">
+      <div className="h-1.5 rounded-full bg-surface-light overflow-hidden mb-3">
         <motion.div
           className={cn('h-full rounded-full', barColor[zone.congestionLevel])}
           initial={{ width: 0 }}
@@ -97,14 +97,14 @@ const ZoneCard = memo(function ZoneCard({
         />
       </div>
 
-      <div className="flex items-center justify-between text-xs">
-        <span className={cn('flex items-center gap-1', pct >= 90 ? 'text-red-400' : 'text-text-muted')}>
-          <Users className="h-3 w-3" />
-          {pct}% full
+      <div className="flex items-center justify-between text-xs font-medium">
+        <span className={cn('flex items-center gap-1.5', pct >= 90 ? 'text-accent-red' : 'text-text-muted')}>
+          <Users className="h-3.5 w-3.5" />
+          <span className="tabular-nums">{pct}%</span> full
         </span>
         {isConnected && (
-          <span className="flex items-center gap-1 text-emerald-500 opacity-70">
-            <Zap className="h-3 w-3" />
+          <span className="flex items-center gap-1.5 text-accent-green opacity-80">
+            <Zap className="h-3.5 w-3.5" />
             Live
           </span>
         )}
@@ -133,13 +133,12 @@ export function ZoneCongestionGrid() {
       return (
         <div className="rounded-2xl border border-dashed border-surface-border p-8 text-center bg-surface-light/30">
           <p className="text-text-muted mb-2">No venue data found.</p>
-          <p className="text-sm text-text-secondary">Please click "Seed DB" in the bottom right corner to initialize.</p>
         </div>
       )
     }
 
     return (
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }, (_, i) => (
           <ZoneCardSkeleton key={i} />
         ))}
@@ -152,7 +151,7 @@ export function ZoneCongestionGrid() {
       variants={containerVariants}
       initial="hidden"
       animate="visible"
-      className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
+      className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
     >
       {sorted.map((zone) => (
         <ZoneCard key={zone.id} zone={zone} isConnected={isConnected} />

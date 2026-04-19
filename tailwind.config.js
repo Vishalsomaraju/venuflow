@@ -1,30 +1,32 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       colors: {
         primary: {
-          bg: '#0f1117',
-          DEFAULT: '#4f8ef7',
-          hover: '#3a7be0',
-          light: '#6ba3ff',
+          bg: 'var(--color-primary-bg)',
+          DEFAULT: 'var(--color-primary)',
+          hover: 'var(--color-primary-hover)',
+          light: 'var(--color-primary-light)',
         },
         surface: {
-          DEFAULT: '#1a1d27',
-          light: '#242835',
-          border: '#2a2e3a',
+          DEFAULT: 'var(--color-surface)',
+          light: 'var(--color-surface-light)',
+          border: 'var(--color-surface-border)',
         },
         accent: {
-          DEFAULT: '#4f8ef7',
-          green: '#34d399',
-          amber: '#fbbf24',
-          red: '#f87171',
+          DEFAULT: 'var(--color-primary)',
+          green: '#10B981', // Spring Green
+          amber: '#F59E0B', // Vibrant Amber
+          red: '#F43F5E',   // Crimson Rose
+          blue: '#0EA5E9',  // Sky Blue
         },
         text: {
-          primary: '#f1f5f9',
-          secondary: '#94a3b8',
-          muted: '#64748b',
+          primary: 'var(--color-text-primary)',
+          secondary: 'var(--color-text-secondary)',
+          muted: 'var(--color-text-muted)',
         }
       },
       fontFamily: {

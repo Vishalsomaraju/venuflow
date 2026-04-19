@@ -15,9 +15,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(firebaseUser)
 
         // Fetch or create Firestore user doc
-        const userDoc = await getDocument<AppUser>('users', firebaseUser.uid)
+        let userDoc = await getDocument<AppUser>('users', firebaseUser.uid)
+
+        // Auto-elevate demo admin if role isn't set yet
+        const isAdminEmail = firebaseUser.email?.toLowerCase().includes('admin');
 
         if (userDoc) {
+          if (isAdminEmail && userDoc.role !== 'admin') {
+            userDoc.role = 'admin';
+            try {
+              await setDocument('users', firebaseUser.uid, userDoc);
+            } catch {}
+          }
           setAppUser(userDoc)
         } else {
           const newUser: AppUser = {
@@ -26,7 +35,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             displayName:
               firebaseUser.displayName ??
               (firebaseUser.isAnonymous ? 'Guest' : null),
-            role: 'user',
+            role: isAdminEmail ? 'admin' : 'user',
             createdAt: Date.now(),
           }
           try {

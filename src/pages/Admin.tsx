@@ -6,6 +6,7 @@ import toast from 'react-hot-toast'
 import { Database, ShieldAlert, Cpu } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { Navigate } from 'react-router-dom'
+import { cn } from '@/lib/utils'
 
 export function Admin() {
   // Allow both staff and admin — staff mode gives access to all tools
@@ -46,7 +47,9 @@ export function Admin() {
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <Database className="h-5 w-5 text-accent" />
+              <div className="p-2 rounded-xl bg-accent/10">
+                <Database className="h-5 w-5 text-accent" />
+              </div>
               <h3 className="text-lg font-semibold text-text-primary">
                 Data Seeding
               </h3>
@@ -60,7 +63,7 @@ export function Admin() {
             <button
               onClick={handleSeed}
               disabled={isSeeding}
-              className="w-full sm:w-auto px-4 py-2 bg-accent text-white rounded-lg font-medium hover:bg-accent/90 disabled:opacity-50 transition-colors"
+              className="w-full sm:w-auto px-4 py-2.5 bg-accent text-white rounded-xl font-medium hover:bg-accent/90 disabled:opacity-50 transition-all shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2)] active:scale-[0.98]"
             >
               {isSeeding ? 'Seeding...' : 'Seed Database'}
             </button>
@@ -71,7 +74,9 @@ export function Admin() {
         <Card>
           <CardHeader>
             <div className="flex items-center gap-2">
-              <Cpu className="h-5 w-5 text-purple-400" />
+              <div className="p-2 rounded-xl bg-purple-500/10">
+                <Cpu className="h-5 w-5 text-purple-400" />
+              </div>
               <h3 className="text-lg font-semibold text-text-primary">
                 Live Simulator
               </h3>
@@ -88,11 +93,15 @@ export function Admin() {
       </div>
 
       {/* Danger Zone */}
-      <Card className="border-red-500/20">
+      <Card className="ring-1 ring-red-500/30 bg-red-500/5 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.05)]">
         <CardHeader>
           <div className="flex items-center gap-2">
-            <ShieldAlert className="h-5 w-5 text-red-500" />
-            <h3 className="text-lg font-semibold text-red-400">Danger Zone</h3>
+            <div className="p-2 rounded-xl bg-red-500/10">
+              <ShieldAlert className="h-5 w-5 text-red-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-red-400">
+              Danger Zone
+            </h3>
           </div>
         </CardHeader>
         <CardContent>
@@ -100,7 +109,7 @@ export function Admin() {
             Actions here can cause irreversible data loss. Ensure you are not
             running a live demo before proceeding.
           </p>
-          <button className="px-4 py-2 border border-red-500/50 text-red-400 rounded-lg font-medium hover:bg-red-500/10 transition-colors">
+          <button className="px-4 py-2.5 ring-1 ring-red-500/50 text-red-400 rounded-xl font-medium hover:bg-red-500/10 transition-colors active:scale-[0.98]">
             Wipe Firestore Data
           </button>
         </CardContent>

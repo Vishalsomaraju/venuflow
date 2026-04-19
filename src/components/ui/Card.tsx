@@ -12,8 +12,8 @@ export function Card({ children, className, onClick }: CardProps) {
     <div
       onClick={onClick}
       className={cn(
-        'rounded-xl border border-surface-border bg-surface',
-        onClick && 'cursor-pointer hover:border-accent/30 transition-colors',
+        'rounded-2xl bg-surface/80 backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.02)] ring-1 ring-surface-border/50',
+        onClick && 'cursor-pointer hover:shadow-[0_8px_32px_rgba(0,0,0,0.04)] transition-all duration-300',
         className
       )}
     >
@@ -30,7 +30,7 @@ export function CardHeader({
   className?: string
 }) {
   return (
-    <div className={cn('px-5 pt-5 pb-2', className)}>
+    <div className={cn('px-6 pt-6 pb-3', className)}>
       {children}
     </div>
   )
@@ -43,5 +43,5 @@ export function CardContent({
   children: ReactNode
   className?: string
 }) {
-  return <div className={cn('px-5 pb-5', className)}>{children}</div>
+  return <div className={cn('px-6 pb-6', className)}>{children}</div>
 }
