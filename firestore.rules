@@ -1,32 +1,42 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Check if the user has an admin role
-    function isAdmin() {
-      return request.auth != null && request.auth.token.role == 'admin';
+
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    // Anyone can read zones and facilities
-    match /zones/{zoneId} {
-      allow read: if true;
-      allow write: if isAdmin();
-    }
-    
-    match /facilities/{facilityId} {
-      allow read: if true;
-      allow write: if isAdmin();
+    function userRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
     }
 
-    // Users can read and write their own profile
-    match /users/{userId} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    function isStaffOrAdmin() {
+      return isSignedIn() && userRole() in ['staff', 'admin'];
     }
 
-    // Anyone can read alerts
-    match /alerts/{alertId} {
-      allow read: if true;
-      allow write: if isAdmin();
+    // Zones — fully public read
+    match /zones/{id} {
+      allow read:  if true;
+      allow write: if isStaffOrAdmin();
+    }
+
+    // Facilities — fully public read
+    match /facilities/{id} {
+      allow read:  if true;
+      allow write: if isStaffOrAdmin();
+    }
+
+    // Alerts — any signed-in user (anonymous counts)
+    match /alerts/{id} {
+      allow read:  if isSignedIn();
+      allow write: if isStaffOrAdmin();
+    }
+
+    // Users
+    match /users/{uid} {
+      allow read:  if isSignedIn() && (request.auth.uid == uid || isStaffOrAdmin());
+      allow create: if isSignedIn() && request.auth.uid == uid;
+      allow update: if isSignedIn() && request.auth.uid == uid;
     }
   }
 }

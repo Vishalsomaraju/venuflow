@@ -1,48 +1,25 @@
 // src/hooks/useVenueSubscription.ts
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import { useVenueStore } from '@/store/venueStore'
 
 /**
- * Manages the Firestore subscription lifecycle.
- * Call this once at the app root level — it subscribes on mount
- * and unsubscribes on unmount.
- *
- * @example
- * ```tsx
- * function App() {
- *   useVenueSubscription()
- *   return <Dashboard />
- * }
- * ```
+ * Subscribes to all Firestore collections on mount, unsubscribes on unmount.
+ * Keep it dead simple — the store's isSubscribed flag prevents double-subscribing.
  */
 export function useVenueSubscription() {
   const subscribe = useVenueStore((s) => s.subscribe)
   const unsubscribe = useVenueStore((s) => s.unsubscribe)
-  const isSubscribed = useVenueStore((s) => s.isSubscribed)
-  const mountedRef = useRef(false)
 
   useEffect(() => {
-    // Prevent double-subscribe in React StrictMode
-    if (mountedRef.current) return
-    mountedRef.current = true
-
-    if (!isSubscribed) {
-      subscribe()
-    }
-
+    subscribe()
     return () => {
-      // Only unsubscribe on true unmount, not StrictMode re-render
-      // We use a small delay to distinguish
-      setTimeout(() => {
-        if (!mountedRef.current) return
-        unsubscribe()
-        mountedRef.current = false
-      }, 100)
+      unsubscribe()
     }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return {
-    isSubscribed,
+    isSubscribed: useVenueStore((s) => s.isSubscribed),
     isConnected: useVenueStore((s) => s.isConnected),
     error: useVenueStore((s) => s.subscriptionError),
   }

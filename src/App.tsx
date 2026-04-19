@@ -10,10 +10,7 @@ import { Login } from '@/pages/Login'
 import { useAuthStore } from '@/store/authStore'
 import { useVenueSubscription } from '@/hooks/useVenueSubscription'
 import { useSimulationCleanup } from '@/hooks/useSimulationCleanup'
-import { cn } from '@/lib/utils'
 import { Loader2 } from 'lucide-react'
-
-// ── Route guards ──────────────────────────────────────────────────
 
 function ProtectedStaffRoute({ children }: { children: React.ReactNode }) {
   const isStaff = useAuthStore((s) => s.isStaff())
@@ -21,7 +18,6 @@ function ProtectedStaffRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
-// ── Loading screen while Firebase resolves auth state ─────────────
 function AppLoading() {
   return (
     <div className="min-h-screen bg-primary-bg flex items-center justify-center">
@@ -33,20 +29,23 @@ function AppLoading() {
   )
 }
 
-// ── Authenticated shell (sidebar + main routes) ───────────────────
 function AuthenticatedApp() {
   useVenueSubscription()
   useSimulationCleanup()
 
   return (
-    <div className={cn('flex h-screen bg-primary-bg text-text-primary')}>
+    <div className="flex min-h-screen bg-primary-bg text-text-primary">
       <a href="#main-content" className="skip-link">
         Skip to main content
       </a>
+
       <Sidebar />
+
+      {/* md:ml-16 clears the collapsed sidebar (w-16 = 4rem = 64px) */}
+      {/* pb-16 clears the mobile bottom tab bar */}
       <main
         id="main-content"
-        className="flex-1 overflow-y-auto"
+        className="flex-1 md:ml-16 pb-16 md:pb-0 overflow-y-auto min-h-screen"
         aria-label="Main content"
         tabIndex={-1}
       >
@@ -80,17 +79,12 @@ function AuthenticatedApp() {
   )
 }
 
-// ── Root ──────────────────────────────────────────────────────────
 export default function App() {
   const loading = useAuthStore((s) => s.loading)
   const user = useAuthStore((s) => s.user)
 
-  // Still waiting for Firebase to resolve auth state
   if (loading) return <AppLoading />
 
-  // Not signed in at all — show login
-  // (AuthProvider auto-calls signInAnonymously, so this is usually
-  //  only seen for a fraction of a second on first visit)
   if (!user) {
     return (
       <Routes>

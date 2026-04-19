@@ -20,7 +20,6 @@ import type {
   FacilityType,
 } from '@/types'
 
-// ─── Stats interface ──────────────────────────────────────────────
 export interface VenueStats {
   totalAttendees: number
   totalCapacity: number
@@ -37,7 +36,6 @@ export interface VenueStats {
   facilityBreakdown: Record<string, number>
 }
 
-// ─── Store interface ──────────────────────────────────────────────
 interface VenueState {
   zones: Zone[]
   facilities: Facility[]
@@ -65,14 +63,14 @@ interface VenueState {
   getOpenGatesCount: () => number
 }
 
-const CONGESTION_PRIORITY: Record<CongestionLevel, number> = {
+const PRIORITY: Record<CongestionLevel, number> = {
   low: 0,
   medium: 1,
   high: 2,
   critical: 3,
 }
 
-function convertDoc<T>(id: string, data: DocumentData): T {
+function toDoc<T>(id: string, data: DocumentData): T {
   const out: Record<string, unknown> = { id }
   for (const [k, v] of Object.entries(data)) {
     out[k] = v instanceof Timestamp ? v.toDate() : v
@@ -92,55 +90,54 @@ export const useVenueStore = create<VenueState>()(
     _unsubscribers: [],
 
     setZones: (zones) =>
-      set({
-        zones,
-        lastSyncAt: new Date(),
-        isConnected: true,
-        subscriptionError: null,
-      }),
+      set({ zones, lastSyncAt: new Date(), isConnected: true }),
     setFacilities: (facilities) => set({ facilities, lastSyncAt: new Date() }),
     setAlerts: (alerts) => set({ alerts, lastSyncAt: new Date() }),
 
     subscribe: () => {
-      if (get().isSubscribed) return
-      get()._unsubscribers.forEach((u) => u())
+      // Always clean up previous listeners before creating new ones
+      get()._unsubscribers.forEach((u) => {
+        try {
+          u()
+        } catch (_) {
+          /* */
+        }
+      })
+
       const unsubs: Unsubscribe[] = []
 
-      // 1. Zones — public read (no auth required)
+      // 1. Zones — allow read: if true (no auth needed)
       unsubs.push(
         onSnapshot(
           collection(db, 'zones'),
           (snap) => {
-            get().setZones(
-              snap.docs.map((d) => convertDoc<Zone>(d.id, d.data()))
-            )
+            get().setZones(snap.docs.map((d) => toDoc<Zone>(d.id, d.data())))
           },
           (err) => {
-            console.error('[venueStore] zones:', err.code, err.message)
-            set({ subscriptionError: err.message, isConnected: false })
+            console.error('[zones]', err.code, err.message)
+            set({ isConnected: false, subscriptionError: err.message })
           }
         )
       )
 
-      // 2. Facilities — public read (no auth required)
+      // 2. Facilities — allow read: if true (no auth needed)
       unsubs.push(
         onSnapshot(
           collection(db, 'facilities'),
           (snap) => {
             get().setFacilities(
-              snap.docs.map((d) => convertDoc<Facility>(d.id, d.data()))
+              snap.docs.map((d) => toDoc<Facility>(d.id, d.data()))
             )
           },
           (err) => {
-            console.error('[venueStore] facilities:', err.code, err.message)
+            console.error('[facilities]', err.code, err.message)
             set({ subscriptionError: err.message })
           }
         )
       )
 
-      // 3. Alerts — requires auth (signInAnonymously handles this automatically)
-      // IMPORTANT: NO orderBy() here — that would need a composite index.
-      // We sort client-side instead.
+      // 3. Alerts — allow read: if isSignedIn() (anonymous auth satisfies this)
+      // NO orderBy() — avoids needing a composite index. Sort client-side.
       unsubs.push(
         onSnapshot(
           query(
@@ -150,7 +147,7 @@ export const useVenueStore = create<VenueState>()(
           ),
           (snap) => {
             const alerts = snap.docs
-              .map((d) => convertDoc<Alert>(d.id, d.data()))
+              .map((d) => toDoc<Alert>(d.id, d.data()))
               .sort((a, b) => {
                 const at =
                   a.createdAt instanceof Date ? a.createdAt.getTime() : 0
@@ -161,12 +158,9 @@ export const useVenueStore = create<VenueState>()(
             get().setAlerts(alerts)
           },
           (err) => {
-            console.error('[venueStore] alerts:', err.code, err.message)
-            // PERMISSION_DENIED here means anonymous auth didn't complete yet.
-            // AuthProvider will re-trigger this automatically once auth resolves.
-            if (err.code !== 'permission-denied') {
-              set({ subscriptionError: err.message })
-            }
+            console.error('[alerts]', err.code, err.message)
+            // Don't set subscriptionError for permission-denied on alerts
+            // — it resolves automatically once anonymous auth completes
           }
         )
       )
@@ -202,46 +196,16 @@ export const useVenueStore = create<VenueState>()(
           ? Math.round((totalAttendees / totalCapacity) * 100)
           : 0
 
-      const openFacilities = facilities.filter((f) => f.isOpen)
-      const averageWaitTime =
-        openFacilities.length > 0
-          ? Math.round(
-              openFacilities.reduce((s, f) => s + f.waitMinutes, 0) /
-                openFacilities.length
-            )
-          : 0
+      const open = facilities.filter((f) => f.isOpen)
+      const averageWaitTime = open.length
+        ? Math.round(open.reduce((s, f) => s + f.waitMinutes, 0) / open.length)
+        : 0
 
       const gates = facilities.filter((f) => f.type === 'gate')
       const openGatesCount = gates.filter((f) => f.isOpen).length
-      const totalGatesCount = gates.length
 
       const sorted = [...zones].sort(
-        (a, b) =>
-          CONGESTION_PRIORITY[b.congestionLevel] -
-          CONGESTION_PRIORITY[a.congestionLevel]
-      )
-      const mostCongestedZone = sorted[0] ?? null
-      const leastCongestedZone = sorted[sorted.length - 1] ?? null
-      const criticalZoneCount = zones.filter(
-        (z) => z.congestionLevel === 'critical'
-      ).length
-
-      const congestionBreakdown = zones.reduce(
-        (acc, z) => {
-          acc[z.congestionLevel] = (acc[z.congestionLevel] || 0) + 1
-          return acc
-        },
-        { low: 0, medium: 0, high: 0, critical: 0 } as Record<
-          CongestionLevel,
-          number
-        >
-      )
-      const facilityBreakdown = facilities.reduce(
-        (acc, f) => {
-          acc[f.type] = (acc[f.type] || 0) + 1
-          return acc
-        },
-        {} as Record<string, number>
+        (a, b) => PRIORITY[b.congestionLevel] - PRIORITY[a.congestionLevel]
       )
 
       return {
@@ -250,15 +214,31 @@ export const useVenueStore = create<VenueState>()(
         occupancyPercent,
         averageWaitTime,
         openGatesCount,
-        totalGatesCount,
-        mostCongestedZone,
-        leastCongestedZone,
-        criticalZoneCount,
+        totalGatesCount: gates.length,
+        mostCongestedZone: sorted[0] ?? null,
+        leastCongestedZone: sorted[sorted.length - 1] ?? null,
+        criticalZoneCount: zones.filter((z) => z.congestionLevel === 'critical')
+          .length,
         activeAlertCount: alerts.length,
         criticalAlertCount: alerts.filter((a) => a.severity === 'critical')
           .length,
-        congestionBreakdown,
-        facilityBreakdown,
+        congestionBreakdown: zones.reduce(
+          (a, z) => {
+            a[z.congestionLevel] = (a[z.congestionLevel] || 0) + 1
+            return a
+          },
+          { low: 0, medium: 0, high: 0, critical: 0 } as Record<
+            CongestionLevel,
+            number
+          >
+        ),
+        facilityBreakdown: facilities.reduce(
+          (a, f) => {
+            a[f.type] = (a[f.type] || 0) + 1
+            return a
+          },
+          {} as Record<string, number>
+        ),
       }
     },
 
@@ -267,28 +247,18 @@ export const useVenueStore = create<VenueState>()(
       get().facilities.filter((f) => f.zoneId === id),
     getFacilitiesByType: (t) => get().facilities.filter((f) => f.type === t),
     getAlertsByZone: (id) => get().alerts.filter((a) => a.zoneId === id),
-    getMostCongestedZone: () => {
-      const { zones } = get()
-      if (!zones.length) return null
-      return (
-        [...zones].sort(
-          (a, b) =>
-            CONGESTION_PRIORITY[b.congestionLevel] -
-            CONGESTION_PRIORITY[a.congestionLevel]
-        )[0] ?? null
-      )
-    },
-    getLeastCongestedZone: () => {
-      const { zones } = get()
-      if (!zones.length) return null
-      return (
-        [...zones].sort(
-          (a, b) =>
-            CONGESTION_PRIORITY[a.congestionLevel] -
-            CONGESTION_PRIORITY[b.congestionLevel]
-        )[0] ?? null
-      )
-    },
+    getMostCongestedZone: () =>
+      get().zones.length
+        ? ([...get().zones].sort(
+            (a, b) => PRIORITY[b.congestionLevel] - PRIORITY[a.congestionLevel]
+          )[0] ?? null)
+        : null,
+    getLeastCongestedZone: () =>
+      get().zones.length
+        ? ([...get().zones].sort(
+            (a, b) => PRIORITY[a.congestionLevel] - PRIORITY[b.congestionLevel]
+          )[0] ?? null)
+        : null,
     getTotalAttendees: () =>
       get().zones.reduce((s, z) => s + (z.currentCount || 0), 0),
     getAverageWaitTime: () => {

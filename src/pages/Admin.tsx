@@ -8,11 +8,11 @@ import { useAuthStore } from '@/store/authStore'
 import { Navigate } from 'react-router-dom'
 
 export function Admin() {
-  const role = useAuthStore((s) => s.appUser?.role)
+  // Allow both staff and admin — staff mode gives access to all tools
+  const isStaff = useAuthStore((s) => s.isStaff())
   const [isSeeding, setIsSeeding] = useState(false)
 
-  // Redirect if not admin
-  if (role !== 'admin') {
+  if (!isStaff) {
     return <Navigate to="/" replace />
   }
 
@@ -47,14 +47,14 @@ export function Admin() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Database className="h-5 w-5 text-accent" />
-              <h2 className="text-lg font-semibold text-text-primary">
+              <h3 className="text-lg font-semibold text-text-primary">
                 Data Seeding
-              </h2>
+              </h3>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-text-secondary">
-              Initialize the database with 12 stadium zones and 20 facilities.
+              Initialize the database with 12 stadium zones and 22 facilities.
               This will overwrite existing data.
             </p>
             <button
@@ -72,30 +72,27 @@ export function Admin() {
           <CardHeader>
             <div className="flex items-center gap-2">
               <Cpu className="h-5 w-5 text-purple-400" />
-              <h2 className="text-lg font-semibold text-text-primary">
+              <h3 className="text-lg font-semibold text-text-primary">
                 Live Simulator
-              </h2>
+              </h3>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-text-secondary">
               Start the background engine to simulate live crowd movement and
-              facility wait times. This produces the realistic live dashboard
-              effect.
+              facility wait times. Updates every 5 seconds.
             </p>
             <SimulationControl />
           </CardContent>
         </Card>
       </div>
 
-      {/* Dangerous Card */}
+      {/* Danger Zone */}
       <Card className="border-red-500/20">
         <CardHeader>
           <div className="flex items-center gap-2">
             <ShieldAlert className="h-5 w-5 text-red-500" />
-            <h2 className="text-lg font-semibold text-red-400">
-              Danger Zone
-            </h2>
+            <h3 className="text-lg font-semibold text-red-400">Danger Zone</h3>
           </div>
         </CardHeader>
         <CardContent>
