@@ -17,8 +17,8 @@ const barColor: Record<CongestionLevel, string> = {
 }
 
 const cardGlow: Record<CongestionLevel, string> = {
-  low: 'hover:shadow-[0_8px_32px_rgba(16,185,129,0.05)] ring-1 ring-surface-border/50',
-  medium: 'hover:shadow-[0_8px_32px_rgba(245,158,11,0.05)] ring-1 ring-surface-border/50',
+  low: 'hover:shadow-[0_8px_32px_rgba(16,185,129,0.05)] ring-1 ring-surface-border',
+  medium: 'hover:shadow-[0_8px_32px_rgba(245,158,11,0.05)] ring-1 ring-surface-border',
   high: 'shadow-[0_0_24px_rgba(245,158,11,0.1)] ring-1 ring-accent-amber/30',
   critical: 'shadow-[0_0_32px_rgba(244,63,94,0.15)] ring-1 ring-accent-red/40 bg-accent-red/5',
 }

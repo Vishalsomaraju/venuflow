@@ -39,7 +39,7 @@ const FacilityRow = memo(function FacilityRow({
 }) {
   const Icon = facilityIcons[facility.type as FacilityType] ?? Info
   return (
-    <tr className="border-b border-surface-border/50 hover:bg-surface-light/30 transition-colors">
+    <tr className="border-b border-surface-border hover:bg-surface-light/30 transition-colors">
       <td className="py-2.5 px-2">
         <div className="flex items-center gap-2">
           <Icon className="h-4 w-4 text-text-muted" />
