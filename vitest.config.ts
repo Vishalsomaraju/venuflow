@@ -11,10 +11,13 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.ts'],
     css: false,
     coverage: {
-      reporter: ['text', 'lcov'],
+      provider: 'v8',
+      reporter: ['text', 'lcov', 'html'],
+      include: ['src/lib/**', 'src/hooks/**'],
+      exclude: ['src/**/*.d.ts', 'src/test/**', 'src/types/**'],
       thresholds: {
-        functions: 70,
-        lines: 70,
+        functions: 75,
+        lines: 75,
       },
     },
   },

@@ -25,7 +25,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             userDoc.role = 'admin';
             try {
               await setDocument('users', firebaseUser.uid, userDoc);
-            } catch {}
+            } catch (err) {
+              console.warn('[AuthProvider] Admin role elevation write failed:', err)
+            }
           }
           setAppUser(userDoc)
         } else {

@@ -141,7 +141,8 @@ function ZoneOverrideSection({
         )
       )
       toast.success(`${zoneName} set to ${level}`)
-    } catch {
+    } catch (err) {
+      console.warn('[StaffPanel] Zone congestion override failed:', err)
       toast.error('Failed to update zone')
     } finally {
       setPending((p) => {
@@ -168,7 +169,8 @@ function ZoneOverrideSection({
         )
       )
       toast.success(`${zoneName} ${closed ? 'closed' : 'reopened'}`)
-    } catch {
+    } catch (err) {
+      console.warn('[StaffPanel] Zone closed toggle failed:', err)
       toast.error('Failed to update zone')
     } finally {
       setPending((p) => {
@@ -366,7 +368,8 @@ function BroadcastAlertSection({
       toast.success('Alert broadcasted!')
       setMessage('')
       setSelectedZone('')
-    } catch {
+    } catch (err) {
+      console.warn('[StaffPanel] Alert broadcast failed:', err)
       toast.error('Failed to broadcast alert')
     } finally {
       setIsSending(false)
@@ -508,7 +511,8 @@ function FacilityControlsSection({
         )
       )
       toast.success(`${name} ${isOpen ? 'opened' : 'closed'}`)
-    } catch {
+    } catch (err) {
+      console.warn('[StaffPanel] Facility toggle failed:', err)
       toast.error('Update failed')
     } finally {
       setPending((p) => {
@@ -539,7 +543,8 @@ function FacilityControlsSection({
         delete n[id]
         return n
       })
-    } catch {
+    } catch (err) {
+      console.warn('[StaffPanel] Wait time save failed:', err)
       toast.error('Update failed')
     } finally {
       setPending((p) => {

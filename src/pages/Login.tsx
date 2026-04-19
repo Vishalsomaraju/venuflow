@@ -62,7 +62,8 @@ export function Login() {
     try {
       await signInAnonymously(auth)
       navigate('/')
-    } catch {
+    } catch (err) {
+      console.warn('[Login] Guest sign-in failed:', err)
       toast.error('Guest access failed. Please try logging in.')
     } finally {
       setLoading(null)

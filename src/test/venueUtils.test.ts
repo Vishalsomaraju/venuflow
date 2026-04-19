@@ -6,8 +6,8 @@ import {
   calcCongestionLevel,
   sortFacilitiesByWait,
   findNearestOpenFacility,
-  formatWaitTime,
 } from '@/lib/venueUtils'
+import { formatWaitTime, sanitizeInput } from '@/lib/utils'
 import { mockFacilities } from './mocks/venueStore'
 import type { Facility } from '@/types'
 
@@ -143,4 +143,35 @@ describe('formatWaitTime', () => {
     expect(formatWaitTime(15)).toBe('15 min'))
   it('formats hours and minutes', () =>
     expect(formatWaitTime(90)).toBe('1h 30m'))
+})
+
+// ─── Test: sanitizeInput security utility ─────────────────────────
+
+describe('sanitizeInput', () => {
+  it('strips HTML angle brackets', () => {
+    expect(sanitizeInput('<script>alert(1)</script>')).not.toContain('<')
+    expect(sanitizeInput('<script>alert(1)</script>')).not.toContain('>')
+  })
+
+  it('strips template/curly-brace injections', () => {
+    expect(sanitizeInput('Hello {dangerous}')).not.toContain('{')
+    expect(sanitizeInput('{{nested}}')).not.toContain('{')
+  })
+
+  it('trims leading and trailing whitespace', () => {
+    expect(sanitizeInput('  hello  ')).toBe('hello')
+  })
+
+  it('caps output at 500 characters', () => {
+    const long = 'a'.repeat(600)
+    expect(sanitizeInput(long)).toHaveLength(500)
+  })
+
+  it('returns empty string for blank input', () => {
+    expect(sanitizeInput('   ')).toBe('')
+  })
+
+  it('preserves safe text unchanged', () => {
+    expect(sanitizeInput('How crowded is Gate 2?')).toBe('How crowded is Gate 2?')
+  })
 })

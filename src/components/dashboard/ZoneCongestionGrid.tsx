@@ -75,9 +75,9 @@ const ZoneCard = React.memo(function ZoneCard({
 
       <div className="flex items-start justify-between mb-4">
         <div>
-          <h3 className="font-semibold text-text-primary text-base tracking-tight leading-snug">
+          <p className="font-semibold text-text-primary text-base tracking-tight leading-snug">
             {zone.name}
-          </h3>
+          </p>
           <p className="text-xs font-medium text-text-muted mt-1 tracking-wide uppercase">
             <span className="text-text-primary tabular-nums font-semibold">{zone.currentCount.toLocaleString()}</span> /{' '}
             <span className="tabular-nums">{zone.capacity.toLocaleString()}</span> cap
