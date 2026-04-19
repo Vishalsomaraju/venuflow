@@ -8,7 +8,6 @@ import { CrowdChart } from '@/components/dashboard/CrowdChart'
 import { FacilityTable } from '@/components/dashboard/FacilityTable'
 import { SimulationControl } from '@/components/dashboard/SimulationControl'
 import { StatCardSkeleton } from '@/components/ui/Skeleton'
-import { seedDatabase } from '@/lib/seedData'
 import { cn } from '@/lib/utils'
 import {
   Users,
@@ -18,15 +17,8 @@ import {
   Wifi,
   WifiOff,
   MapPin,
-  KeyRound,
-  ShieldCheck,
-  Database,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
-import { useNavigate } from 'react-router-dom'
-import { useState } from 'react'
-import toast from 'react-hot-toast'
-
 // ─── Section header ───────────────────────────────────────────────
 function SectionHeader({
   title,
@@ -48,28 +40,10 @@ function SectionHeader({
 // ─── Dashboard ───────────────────────────────────────────────────
 export function Dashboard() {
   const { appUser, user } = useAuthStore()
-  const { elevateToStaff, elevateToAdmin } = useAuthStore()
-  const isStaff = useAuthStore((s) => s.isStaff())
-  const isAdmin = useAuthStore((s) => s.isAdmin())
-  const navigate = useNavigate()
+
   const role = appUser?.role ?? 'guest'
   const isConnected = useIsConnected()
   const mostCongested = useMostCongestedZone()
-  const [isSeeding, setIsSeeding] = useState(false)
-
-  async function handleSeedDatabase() {
-    setIsSeeding(true)
-    const t = toast.loading('Seeding database…')
-    try {
-      await seedDatabase()
-      toast.success('Database seeded! Data will appear shortly.', { id: t })
-    } catch (err) {
-      console.error(err)
-      toast.error('Seed failed — check console for details.', { id: t })
-    } finally {
-      setIsSeeding(false)
-    }
-  }
   const { stats, isStale, lastSyncAt, isConnected: statsConnected } =
     useVenueStats({ refreshInterval: 2000, autoRefresh: true })
 
@@ -347,59 +321,6 @@ export function Dashboard() {
         </p>
       )}
 
-      {/* ── Secret dev buttons (bottom-right corner) ──── */}
-      <div className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2">
-        {/* Seed DB button — always visible so first-time setup works */}
-        <button
-          onClick={handleSeedDatabase}
-          disabled={isSeeding}
-          className={cn(
-            'flex items-center gap-2 rounded-full border border-surface-border bg-surface/80',
-            'backdrop-blur-sm px-3 py-2 text-xs text-text-muted',
-            'hover:border-emerald-500/40 hover:text-emerald-400 transition-all duration-200 shadow-lg',
-            'disabled:opacity-20'
-          )}
-          title="Seed Database"
-          aria-label="Seed Database"
-        >
-          <Database className="h-3.5 w-3.5" aria-hidden="true" />
-          {isSeeding ? 'Seeding…' : 'Seed DB'}
-        </button>
-
-        {/* Admin mode — elevate + go to /admin */}
-        {!isAdmin && (
-          <button
-            onClick={() => { elevateToAdmin(); navigate('/admin') }}
-            className={cn(
-              'flex items-center gap-2 rounded-full border border-surface-border bg-surface/80',
-              'backdrop-blur-sm px-3 py-2 text-xs text-text-muted',
-              'hover:border-purple-500/40 hover:text-purple-400 transition-all duration-200 shadow-lg'
-            )}
-            title="Enter Admin Mode"
-            aria-label="Enter Admin Mode"
-          >
-            <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
-            Admin Mode
-          </button>
-        )}
-
-        {/* Staff mode button */}
-        {!isStaff && (
-          <button
-            onClick={() => { elevateToStaff(); navigate('/staff') }}
-            className={cn(
-              'flex items-center gap-2 rounded-full border border-surface-border bg-surface/80',
-              'backdrop-blur-sm px-3 py-2 text-xs text-text-muted',
-              'hover:border-accent/40 hover:text-accent transition-all duration-200 shadow-lg'
-            )}
-            title="Enter Staff Mode"
-            aria-label="Enter Staff Mode"
-          >
-            <KeyRound className="h-3.5 w-3.5" aria-hidden="true" />
-            Staff Mode
-          </button>
-        )}
-      </div>
     </div>
   )
 }

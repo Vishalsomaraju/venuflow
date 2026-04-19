@@ -247,17 +247,7 @@ function calcCongestionLevel(
   return 'low'
 }
 
-/** Firestore WriteBatch max = 500 ops; split if needed */
-async function commitInChunks(
-  batches: {
-    set: (ref: ReturnType<typeof doc>, data: object) => void
-    commit: () => Promise<void>
-  }[],
-  allOps: (() => void)[],
-  chunkSize = 400
-) {
-  // No-op placeholder — real impl below
-}
+
 
 export async function seedDatabase(): Promise<void> {
   const now = new Date()
