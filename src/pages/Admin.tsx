@@ -6,7 +6,7 @@ import toast from 'react-hot-toast'
 import { Database, ShieldAlert, Cpu } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
 import { Navigate } from 'react-router-dom'
-import { cn } from '@/lib/utils'
+
 
 export function Admin() {
   // Allow both staff and admin — staff mode gives access to all tools
