@@ -201,7 +201,7 @@ function ZoneOverrideSection({
             return (
               <div
                 key={zone.id}
-                className="rounded-xl border border-surface-border/50 bg-surface-light/30 p-4 space-y-4"
+                className="rounded-xl border border-surface-border bg-surface-light/30 p-4 space-y-4"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -588,7 +588,7 @@ function FacilityControlsSection({
             return (
               <div
                 key={f.id}
-                className="flex items-center gap-3 rounded-xl border border-surface-border/50 bg-surface-light/30 px-4 py-3 transition-colors hover:bg-surface-light/50"
+                className="flex items-center gap-3 rounded-xl border border-surface-border bg-surface-light/30 px-4 py-3 transition-colors hover:bg-surface-light/50"
               >
                 {/* Status toggle */}
                 <button
@@ -737,7 +737,7 @@ function ActivityFeed({ entries }: { entries: ActivityEntry[] }) {
                 initial={{ opacity: 0, x: -8 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0 }}
-                className="flex items-start gap-3 rounded-xl border border-surface-border/50 bg-surface-light/30 px-4 py-3"
+                className="flex items-start gap-3 rounded-xl border border-surface-border bg-surface-light/30 px-4 py-3"
               >
                 <span
                   className={cn(

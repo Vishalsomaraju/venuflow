@@ -12,7 +12,7 @@ export function Card({ children, className, onClick }: CardProps) {
     <div
       onClick={onClick}
       className={cn(
-        'rounded-2xl bg-surface/80 backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.02)] ring-1 ring-surface-border/50',
+        'rounded-2xl bg-surface/80 backdrop-blur-xl shadow-[0_4px_24px_rgba(0,0,0,0.02)] ring-1 ring-surface-border',
         onClick && 'cursor-pointer hover:shadow-[0_8px_32px_rgba(0,0,0,0.04)] transition-all duration-300',
         className
       )}

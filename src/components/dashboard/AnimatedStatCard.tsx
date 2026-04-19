@@ -65,7 +65,7 @@ function AnimatedStatCardInner({
         'transition-all duration-300 shadow-[0_4px_24px_rgba(0,0,0,0.02)]',
         highlight
           ? 'shadow-[0_4px_24px_rgba(244,63,94,0.1)] ring-1 ring-accent-red/20'
-          : 'hover:shadow-[0_8px_32px_rgba(0,0,0,0.04)] ring-1 ring-surface-border/50'
+          : 'hover:shadow-[0_8px_32px_rgba(0,0,0,0.04)] ring-1 ring-surface-border'
       )}
       role="status"
       aria-live="polite"
