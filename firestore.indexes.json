@@ -7,15 +7,6 @@
         { "fieldPath": "active", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
-    },
-    {
-      "collectionGroup": "alerts",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "active", "order": "ASCENDING" },
-        { "fieldPath": "zoneId", "order": "ASCENDING" },
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
-      ]
     }
   ],
   "fieldOverrides": []

@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (firebaseUser) {
         setUser(firebaseUser)
 
-        // Fetch or create Firestore user document
+        // Fetch or create Firestore user doc
         const userDoc = await getDocument<AppUser>('users', firebaseUser.uid)
 
         if (userDoc) {
@@ -29,19 +29,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             role: 'user',
             createdAt: Date.now(),
           }
-          await setDocument('users', firebaseUser.uid, newUser)
+          try {
+            await setDocument('users', firebaseUser.uid, newUser)
+          } catch {
+            // If rules block writing (anonymous user), still set local state
+          }
           setAppUser(newUser)
         }
 
         setLoading(false)
       } else {
-        // No user signed in — sign in anonymously so Firestore rules pass.
-        // This is a no-op if the user is already signing in (race-free).
+        // No session — sign in anonymously so Firestore auth rules pass
         try {
           await signInAnonymously(auth)
-          // onAuthStateChanged will fire again with the new anonymous user.
+          // onAuthStateChanged will fire again with the anonymous user
         } catch (err) {
           console.error('Anonymous sign-in failed:', err)
+          // Still clear loading so app renders
           setUser(null)
           setAppUser(null)
           setLoading(false)
