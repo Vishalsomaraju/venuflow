@@ -57,7 +57,7 @@ authoritative reference without needing to scan the entire codebase.
 |----------|-------|
 | Package | `@google/generative-ai` |
 | Key files | `src/hooks/useGemini.ts`, `src/hooks/useAssistant.ts`, `src/lib/geminiContext.ts` |
-| Model | `gemini-1.5-flash` |
+| Model | `gemini-2.5-flash` with fallback to `gemini-flash-latest` |
 | Usage | Live-context AI venue assistant that answers attendee questions using real-time zone/facility/alert data injected as a system prompt; responses are streamed token-by-token |
 | Env var | `VITE_GEMINI_API_KEY` |
 | Docs | https://ai.google.dev/docs |

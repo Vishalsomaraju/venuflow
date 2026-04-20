@@ -14,7 +14,7 @@ export const APP_VERSION = '1.0.0' as const
 
 // ─── AI Assistant ─────────────────────────────────────────────────
 export const ASSISTANT_NAME = 'VenueFlow AI' as const
-export const ASSISTANT_MODEL = 'Gemini 1.5 Flash' as const
+export const ASSISTANT_MODEL = 'Gemini 2.5 Flash' as const
 export const ASSISTANT_PLACEHOLDER_ACTIVE = 'Ask about crowd levels, wait times, routing…' as const
 export const ASSISTANT_PLACEHOLDER_INACTIVE = 'Set VITE_GEMINI_API_KEY to enable' as const
 export const ASSISTANT_EMPTY_HEADING = 'VenueFlow AI' as const
