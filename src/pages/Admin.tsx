@@ -107,11 +107,15 @@ export function Admin() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-text-secondary mb-4">
-            Actions here can cause irreversible data loss. Ensure you are not
-            running a live demo before proceeding.
+            Destructive maintenance actions are intentionally disabled in this
+            demo build to prevent accidental data loss during judging.
           </p>
-          <button className="px-4 py-2.5 ring-1 ring-red-500/50 text-red-400 rounded-xl font-medium hover:bg-red-500/10 transition-colors active:scale-[0.98]">
-            Wipe Firestore Data
+          <button
+            disabled
+            aria-disabled="true"
+            className="px-4 py-2.5 ring-1 ring-red-500/30 text-red-300/60 rounded-xl font-medium cursor-not-allowed"
+          >
+            Wipe Firestore Data (disabled for demo safety)
           </button>
         </CardContent>
       </Card>

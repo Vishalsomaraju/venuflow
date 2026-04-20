@@ -42,7 +42,11 @@ vi.mock('framer-motion', () => {
 
 // ── Mock @/lib/simulator ─────────────────────────────────────────
 vi.mock('@/lib/simulator', () => ({
-  startSimulation: vi.fn(),
+  startSimulation: vi.fn(() => ({
+    ok: true,
+    status: 'started',
+    message: 'Live simulation started — data updating every 5s',
+  })),
   stopSimulation: vi.fn(),
   isSimulationRunning: vi.fn(() => false),
 }))

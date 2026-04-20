@@ -14,6 +14,12 @@ interface SimulationConfig {
   volatility: number // 0–1: how much counts swing per tick
 }
 
+export interface SimulationStartResult {
+  ok: boolean
+  status: 'started' | 'already-running' | 'unauthorized'
+  message: string
+}
+
 const DEFAULT_CONFIG: SimulationConfig = {
   intervalMs: 5000,
   volatility: 0.15,
@@ -169,15 +175,25 @@ async function generateRandomAlert(): Promise<void> {
   }
 }
 
-export function startSimulation(config: Partial<SimulationConfig> = {}): void {
+export function startSimulation(
+  config: Partial<SimulationConfig> = {}
+): SimulationStartResult {
   if (!auth.currentUser) {
     console.warn('[Simulator] Cannot start simulation without an authenticated user')
-    return
+    return {
+      ok: false,
+      status: 'unauthorized',
+      message: 'Sign in with a staff or admin session to start the simulator.',
+    }
   }
 
   if (simulationInterval) {
     console.warn('Simulation already running')
-    return
+    return {
+      ok: false,
+      status: 'already-running',
+      message: 'Simulation is already running.',
+    }
   }
 
   const finalConfig = { ...DEFAULT_CONFIG, ...config }
@@ -191,6 +207,12 @@ export function startSimulation(config: Partial<SimulationConfig> = {}): void {
   simulationInterval = setInterval(() => {
     void simulateTick(finalConfig)
   }, finalConfig.intervalMs)
+
+  return {
+    ok: true,
+    status: 'started',
+    message: 'Live simulation started — data updating every 5s',
+  }
 }
 
 export function stopSimulation(): void {

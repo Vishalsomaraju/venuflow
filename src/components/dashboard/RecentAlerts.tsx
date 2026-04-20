@@ -8,6 +8,7 @@ import { Bell, Info, AlertTriangle, XCircle, CheckCircle2 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { formatDistanceToNow } from 'date-fns'
 import type { AlertSeverity } from '@/types'
+import { useMemo } from 'react'
 
 // ─── Config ───────────────────────────────────────────────────────
 const severityConfig: Record<
@@ -42,23 +43,33 @@ const severityConfig: Record<
 // ─── Component ────────────────────────────────────────────────────
 export function RecentAlerts() {
   const alerts = useVenueStore((s) => s.alerts)
+  const zones = useVenueStore((s) => s.zones)
   const isConnected = useVenueStore((s) => s.isConnected)
 
   // Show skeletons while connecting and no data yet
   const isLoading = !isConnected && alerts.length === 0
 
   // Most recent 5, sorted by createdAt desc
-  const recent = [...alerts]
-    .sort((a, b) => {
-      const aTime =
-        a.createdAt instanceof Date ? a.createdAt.getTime() : 0
-      const bTime =
-        b.createdAt instanceof Date ? b.createdAt.getTime() : 0
-      return bTime - aTime
-    })
-    .slice(0, 5)
+  const recent = useMemo(
+    () =>
+      [...alerts]
+        .sort((a, b) => {
+          const aTime =
+            a.createdAt instanceof Date ? a.createdAt.getTime() : 0
+          const bTime =
+            b.createdAt instanceof Date ? b.createdAt.getTime() : 0
+          return bTime - aTime
+        })
+        .slice(0, 5),
+    [alerts]
+  )
+  const zoneNameById = useMemo(
+    () => new Map(zones.map((zone) => [zone.id, zone.name] as const)),
+    [zones]
+  )
 
   const criticalCount = alerts.filter((a) => a.severity === 'critical').length
+  const liveMode = criticalCount > 0 ? 'assertive' : 'polite'
 
   return (
     <Card>
@@ -121,7 +132,7 @@ export function RecentAlerts() {
           <AnimatePresence mode="popLayout" initial={false}>
             <div
               className="space-y-2"
-              aria-live="polite"
+              aria-live={liveMode}
               aria-label="Recent venue alerts"
             >
               {recent.map((alert) => {
@@ -167,7 +178,7 @@ export function RecentAlerts() {
                         </Badge>
                         {alert.zoneId && (
                           <span className="text-xs text-text-muted">
-                            Zone: {alert.zoneId}
+                            Zone: {zoneNameById.get(alert.zoneId) ?? alert.zoneId}
                           </span>
                         )}
                         <span className="text-xs text-text-muted ml-auto">

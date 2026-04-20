@@ -67,6 +67,14 @@ function WaitBadge({ minutes, isOpen }: { minutes: number; isOpen: boolean }) {
   )
 }
 
+function BestChoiceBadge() {
+  return (
+    <span className="text-[10px] font-semibold uppercase tracking-wide text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+      Best option
+    </span>
+  )
+}
+
 // ─── Route result card ────────────────────────────────────────────
 function RouteResultCard({
   result,
@@ -156,9 +164,12 @@ const FacilityRow = memo(function FacilityRow({
       )}
     >
       <div className="flex-1 min-w-0 mr-3">
-        <p className="text-sm font-medium text-text-primary truncate">
-          {facility.name}
-        </p>
+        <div className="flex items-center gap-2 min-w-0">
+          <p className="text-sm font-medium text-text-primary truncate">
+            {facility.name}
+          </p>
+          {allFacilities[0]?.id === facility.id && <BestChoiceBadge />}
+        </div>
         <div className="flex items-center gap-2 mt-0.5">
           <WaitBadge minutes={facility.waitMinutes} isOpen={facility.isOpen} />
           {isDone && routeState.result && (

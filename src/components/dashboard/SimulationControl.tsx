@@ -17,9 +17,13 @@ export function SimulationControl() {
       setRunning(false)
       toast.success('Simulation stopped')
     } else {
-      startSimulation({ intervalMs: 5000, volatility: 0.15 })
+      const result = startSimulation({ intervalMs: 5000, volatility: 0.15 })
+      if (!result.ok) {
+        toast.error(result.message)
+        return
+      }
       setRunning(true)
-      toast.success('Live simulation started — data updating every 5s')
+      toast.success(result.message)
     }
   }, [running])
 

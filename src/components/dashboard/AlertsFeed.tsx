@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { Bell, AlertTriangle, Info, XCircle } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useMemo } from 'react'
 
 const severityIcons = {
   info: Info,
@@ -15,9 +16,14 @@ const severityIcons = {
 
 export function AlertsFeed() {
   const alerts = useVenueStore((s) => s.alerts)
+  const zones = useVenueStore((s) => s.zones)
   const liveMode = alerts.some((alert) => alert.severity === 'critical')
     ? 'assertive'
     : 'polite'
+  const zoneNameById = useMemo(
+    () => new Map(zones.map((zone) => [zone.id, zone.name] as const)),
+    [zones]
+  )
 
   return (
     <Card>
@@ -83,6 +89,11 @@ export function AlertsFeed() {
                         >
                           {alert.severity}
                         </Badge>
+                        {alert.zoneId && (
+                          <span className="text-xs text-text-muted">
+                            {zoneNameById.get(alert.zoneId) ?? alert.zoneId}
+                          </span>
+                        )}
                         {alert.createdAt && (
                           <span className="text-xs text-text-muted">
                             {formatDistanceToNow(
