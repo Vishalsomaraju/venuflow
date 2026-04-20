@@ -15,8 +15,7 @@ export function useVenueSubscription() {
     return () => {
       unsubscribe()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [subscribe, unsubscribe])
 
   return {
     isSubscribed: useVenueStore((s) => s.isSubscribed),

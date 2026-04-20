@@ -5,6 +5,7 @@ import {
   collection,
   query,
   where,
+  orderBy,
   limit,
   onSnapshot,
   Timestamp,
@@ -136,26 +137,19 @@ export const useVenueStore = create<VenueState>()(
         )
       )
 
-      // 3. Alerts — allow read: if isSignedIn() (anonymous auth satisfies this)
-      // NO orderBy() — avoids needing a composite index. Sort client-side.
+      // 3. Alerts — read live active alerts with indexed ordering.
       unsubs.push(
         onSnapshot(
           query(
             collection(db, 'alerts'),
             where('active', '==', true),
+            orderBy('createdAt', 'desc'),
             limit(50)
           ),
           (snap) => {
-            const alerts = snap.docs
-              .map((d) => toDoc<Alert>(d.id, d.data()))
-              .sort((a, b) => {
-                const at =
-                  a.createdAt instanceof Date ? a.createdAt.getTime() : 0
-                const bt =
-                  b.createdAt instanceof Date ? b.createdAt.getTime() : 0
-                return bt - at
-              })
-            get().setAlerts(alerts)
+            get().setAlerts(
+              snap.docs.map((d) => toDoc<Alert>(d.id, d.data()))
+            )
           },
           (err) => {
             console.error('[alerts]', err.code, err.message)

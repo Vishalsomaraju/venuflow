@@ -106,7 +106,7 @@ export function useGemini({ systemPrompt }: UseGeminiOptions) {
   return { sendMessage, resetChat, isConfigured }
 }
 
-function sanitizeGeminiError(error: unknown): string {
+export function sanitizeGeminiError(error: unknown): string {
   const message =
     error instanceof Error ? error.message : 'Gemini request failed'
   return message.replace(API_KEY_PATTERN, 'key=REDACTED')

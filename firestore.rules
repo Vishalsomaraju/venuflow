@@ -5,15 +5,21 @@ service cloud.firestore {
     function isSignedIn() {
       return request.auth != null;
     }
-    function isAdmin() {
+    function hasUserDoc() {
       return isSignedIn() &&
-        request.auth.token.role == 'admin';
+        exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+    function userRole() {
+      return hasUserDoc()
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+        : null;
+    }
+    function isAdmin() {
+      return userRole() == 'admin';
     }
     function isStaff() {
-      return isSignedIn() && (
-        request.auth.token.role == 'admin' ||
-        request.auth.token.role == 'staff'
-      );
+      return userRole() == 'admin' ||
+        userRole() == 'staff';
     }
 
     match /zones/{zoneId} {

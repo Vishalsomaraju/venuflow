@@ -3,16 +3,12 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   signInWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
-  signInAnonymously,
 } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
+import { loginAnonymously, loginWithGoogle } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 import { Loader2, Eye, EyeOff, Zap, Shield, Users } from 'lucide-react'
 import toast from 'react-hot-toast'
-
-const googleProvider = new GoogleAuthProvider()
 
 export function Login() {
   const navigate = useNavigate()
@@ -47,7 +43,10 @@ export function Login() {
   async function handleGoogle() {
     setLoading('google')
     try {
-      await signInWithPopup(auth, googleProvider)
+      const result = await loginWithGoogle()
+      if (result.error) {
+        throw result.error
+      }
       navigate('/')
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Google sign-in failed'
@@ -60,10 +59,15 @@ export function Login() {
   async function handleGuest() {
     setLoading('guest')
     try {
-      await signInAnonymously(auth)
+      const result = await loginAnonymously()
+      if (result.error) {
+        throw result.error
+      }
       navigate('/')
     } catch (err) {
-      console.warn('[Login] Guest sign-in failed:', err)
+      const message =
+        err instanceof Error ? err.message : 'Guest sign-in failed'
+      console.warn('[Login] Guest sign-in failed:', message)
       toast.error('Guest access failed. Please try logging in.')
     } finally {
       setLoading(null)

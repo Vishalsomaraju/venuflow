@@ -7,17 +7,24 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ThemeToggle } from '../ThemeToggle';
 
 const navItems = [
-  { path: '/', icon: LayoutDashboard, label: 'Dashboard', staffOnly: false },
-  { path: '/map', icon: Map, label: 'Venue Map', staffOnly: false },
-  { path: '/assistant', icon: MessageSquareText, label: 'Assistant', staffOnly: false },
-  { path: '/admin', icon: Shield, label: 'Admin', staffOnly: false },
-  { path: '/staff', icon: ShieldCheck, label: 'Staff Panel', staffOnly: true },
+  { path: '/', icon: LayoutDashboard, label: 'Dashboard', staffOnly: false, adminOnly: false },
+  { path: '/map', icon: Map, label: 'Venue Map', staffOnly: false, adminOnly: false },
+  { path: '/assistant', icon: MessageSquareText, label: 'Assistant', staffOnly: false, adminOnly: false },
+  { path: '/admin', icon: Shield, label: 'Admin', staffOnly: false, adminOnly: true },
+  { path: '/staff', icon: ShieldCheck, label: 'Staff Panel', staffOnly: true, adminOnly: false },
 ];
 
 export function Sidebar() {
   const { sidebarOpen, setSidebarOpen } = useUIStore();
   const isStaff = useAuthStore((s) => s.isStaff());
+  const isAdmin = useAuthStore((s) => s.isAdmin());
   const location = useLocation();
+
+  const visibleNavItems = navItems.filter(
+    (item) =>
+      (!item.staffOnly || isStaff) &&
+      (!item.adminOnly || isAdmin)
+  );
 
   const isCurrentPath = (path: string): boolean =>
     path === '/'
@@ -58,7 +65,7 @@ export function Sidebar() {
           </div>
 
           <nav className="flex flex-col gap-2 px-3" aria-label="Main navigation">
-            {navItems.filter((item) => !item.staffOnly || isStaff).map((item) => (
+            {visibleNavItems.map((item) => (
               <NavLink
                 key={item.path}
                 to={item.path}
@@ -126,7 +133,7 @@ export function Sidebar() {
       
       {/* Mobile Tab Bar */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-surface/80 backdrop-blur-xl shadow-[0_-4px_24px_rgba(0,0,0,0.02)] flex justify-around items-center h-16 pb-safe" role="navigation" aria-label="Mobile navigation">
-        {navItems.filter((item) => !item.staffOnly || isStaff).map((item) => (
+        {visibleNavItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}

@@ -31,6 +31,12 @@ function ProtectedStaffRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>
 }
 
+function ProtectedAdminRoute({ children }: { children: React.ReactNode }) {
+  const isAdmin = useAuthStore((s) => s.isAdmin())
+  if (!isAdmin) return <Navigate to="/" replace />
+  return <>{children}</>
+}
+
 function AppLoading() {
   return (
     <div className="min-h-screen bg-primary-bg flex items-center justify-center">
@@ -79,9 +85,9 @@ function AuthenticatedApp() {
               <Route
                 path="/admin"
                 element={
-                  <ProtectedStaffRoute>
+                  <ProtectedAdminRoute>
                     <Admin />
-                  </ProtectedStaffRoute>
+                  </ProtectedAdminRoute>
                 }
               />
               <Route

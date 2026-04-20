@@ -9,11 +9,10 @@ import { Navigate } from 'react-router-dom'
 
 
 export function Admin() {
-  // Allow both staff and admin — staff mode gives access to all tools
-  const isStaff = useAuthStore((s) => s.isStaff())
+  const isAdmin = useAuthStore((s) => s.isAdmin())
   const [isSeeding, setIsSeeding] = useState(false)
 
-  if (!isStaff) {
+  if (!isAdmin) {
     return <Navigate to="/" replace />
   }
 
@@ -24,8 +23,10 @@ export function Admin() {
       await seedDatabase()
       toast.success('Database seeded successfully!', { id: seedToast })
     } catch (error) {
-      console.error(error)
-      toast.error('Failed to seed database.', { id: seedToast })
+      const message =
+        error instanceof Error ? error.message : 'Failed to seed database.'
+      console.error('[Admin] Seed failed:', message)
+      toast.error(message, { id: seedToast })
     } finally {
       setIsSeeding(false)
     }

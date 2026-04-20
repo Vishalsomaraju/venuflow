@@ -4,7 +4,7 @@ import { onAuthStateChanged, signInAnonymously } from 'firebase/auth'
 import { auth } from '@/lib/firebase'
 import { useAuthStore } from '@/store/authStore'
 import { getDocument, setDocument } from '@/lib/db'
-import type { User as AppUser } from '@/types'
+import type { Role, User as AppUser } from '@/types'
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const { setUser, setAppUser, setLoading } = useAuthStore()
@@ -16,9 +16,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         // Fetch or create Firestore user doc
         const userDoc = await getDocument<AppUser>('users', firebaseUser.uid)
+        const tokenResult = await firebaseUser.getIdTokenResult()
+        const claimedRole = normalizeRoleClaim(tokenResult.claims.role)
 
         if (userDoc) {
-          setAppUser(userDoc)
+          setAppUser({
+            ...userDoc,
+            role: claimedRole ?? userDoc.role,
+          })
         } else {
           const newUser: AppUser = {
             id: firebaseUser.uid,
@@ -26,7 +31,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             displayName:
               firebaseUser.displayName ??
               (firebaseUser.isAnonymous ? 'Guest' : null),
-            role: 'user',
+            role: claimedRole ?? 'user',
             createdAt: Date.now(),
           }
           try {
@@ -44,7 +49,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           await signInAnonymously(auth)
           // onAuthStateChanged will fire again with the anonymous user
         } catch (err) {
-          console.error('Anonymous sign-in failed:', err)
+          const message =
+            err instanceof Error ? err.message : 'Anonymous sign-in failed'
+          console.error('[AuthProvider] Anonymous sign-in failed:', message)
           // Still clear loading so app renders
           setUser(null)
           setAppUser(null)
@@ -57,4 +64,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, [setUser, setAppUser, setLoading])
 
   return <>{children}</>
+}
+
+function normalizeRoleClaim(role: unknown): Role | null {
+  return role === 'admin' || role === 'staff' || role === 'user'
+    ? role
+    : null
 }

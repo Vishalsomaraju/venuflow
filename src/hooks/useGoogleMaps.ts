@@ -19,29 +19,25 @@ type GoogleWindow = Window & {
  * Uses the new functional API: setOptions() + importLibrary().
  */
 export function useGoogleMaps() {
-  const [state, setState] = useState<LoadState>('idle')
-  const [error, setError] = useState<string | null>(null)
+  const apiKey = import.meta.env['VITE_GOOGLE_MAPS_API_KEY'] as
+    | string
+    | undefined
+  const missingKeyMessage =
+    'VITE_GOOGLE_MAPS_API_KEY is not set in .env.local. Add your Google Maps API key to enable the map.'
+  const isMissingApiKey = !apiKey || apiKey === '...'
+  const isGoogleMapsLoaded =
+    typeof (window as GoogleWindow).google?.maps?.Map === 'function'
+  const [state, setState] = useState<LoadState>(() =>
+    isMissingApiKey ? 'error' : isGoogleMapsLoaded ? 'ready' : 'loading'
+  )
+  const [error, setError] = useState<string | null>(() =>
+    isMissingApiKey ? missingKeyMessage : null
+  )
 
   useEffect(() => {
-    const apiKey = import.meta.env['VITE_GOOGLE_MAPS_API_KEY'] as
-      | string
-      | undefined
-
-    if (!apiKey || apiKey === '...') {
-      setState('error') // eslint-disable-line react-hooks/set-state-in-effect
-      setError(
-        'VITE_GOOGLE_MAPS_API_KEY is not set in .env.local. Add your Google Maps API key to enable the map.'
-      )
+    if (isMissingApiKey || isGoogleMapsLoaded) {
       return
     }
-
-    // Already fully loaded
-    if (typeof (window as GoogleWindow).google?.maps?.Map === 'function') {
-      setState('ready')
-      return
-    }
-
-    setState('loading')
 
     if (!loadStarted) {
       loadStarted = true
@@ -80,7 +76,7 @@ export function useGoogleMaps() {
       }, 200)
       return () => clearInterval(interval)
     }
-  }, [])
+  }, [apiKey, isGoogleMapsLoaded, isMissingApiKey])
 
   return {
     isReady: state === 'ready',

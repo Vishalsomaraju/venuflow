@@ -2,6 +2,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/lib/firebase', () => ({ db: {} }))
 
+const firestoreMocks = vi.hoisted(() => ({
+  orderByMock: vi.fn(),
+  queryMock: vi.fn(),
+}))
+
 vi.mock('firebase/firestore', () => ({
   Timestamp: class {
     toDate(): Date {
@@ -9,8 +14,9 @@ vi.mock('firebase/firestore', () => ({
     }
   },
   collection: vi.fn(),
-  query: vi.fn(),
+  query: firestoreMocks.queryMock,
   where: vi.fn(),
+  orderBy: firestoreMocks.orderByMock,
   limit: vi.fn(),
   onSnapshot: vi.fn((_, next) => {
     next({ docs: [] })
@@ -71,5 +77,12 @@ describe('useVenueStore', () => {
     ])
 
     expect(useVenueStore.getState().isConnected).toBe(true)
+  })
+
+  it('subscribes to alerts using indexed createdAt ordering', () => {
+    useVenueStore.getState().subscribe()
+
+    expect(firestoreMocks.orderByMock).toHaveBeenCalledWith('createdAt', 'desc')
+    expect(firestoreMocks.queryMock).toHaveBeenCalled()
   })
 })
