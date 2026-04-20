@@ -9,10 +9,14 @@ import {
   GoogleGenerativeAI,
   HarmCategory,
   HarmBlockThreshold,
+  type GenerativeModel,
   type ChatSession,
 } from '@google/generative-ai'
 
-const MODEL_NAME = 'gemini-1.5-flash'
+const MODEL_CANDIDATES = [
+  'gemini-2.5-flash',
+  'gemini-flash-latest',
+] as const
 const API_KEY_PATTERN = /key=[^&\s]+/gi
 
 const SAFETY_SETTINGS = [
@@ -38,27 +42,43 @@ interface StreamCallbacks {
 
 export function useGemini({ systemPrompt }: UseGeminiOptions) {
   const chatRef = useRef<ChatSession | null>(null)
+  const activeModelRef = useRef<(typeof MODEL_CANDIDATES)[number]>(
+    MODEL_CANDIDATES[0]
+  )
   const apiKey = import.meta.env['VITE_GEMINI_API_KEY'] as string | undefined
 
-  // Reset chat (new context snapshot)
-  const resetChat = useCallback(
-    (newSystemPrompt: string) => {
-      if (!apiKey || apiKey === '...') return
-
-      const genAI = new GoogleGenerativeAI(apiKey)
-      const model = genAI.getGenerativeModel({
-        model: MODEL_NAME,
+  const createModel = useCallback(
+    (
+      genAI: GoogleGenerativeAI,
+      modelName: (typeof MODEL_CANDIDATES)[number],
+      prompt: string
+    ): GenerativeModel =>
+      genAI.getGenerativeModel({
+        model: modelName,
         safetySettings: SAFETY_SETTINGS,
         generationConfig: {
           temperature: 0.7,
           maxOutputTokens: 1024,
         },
-        systemInstruction: newSystemPrompt,
-      })
+        systemInstruction: prompt,
+      }),
+    []
+  )
 
+  const resetChat = useCallback(
+    (
+      newSystemPrompt: string,
+      modelName: (typeof MODEL_CANDIDATES)[number] = activeModelRef.current
+    ) => {
+      if (!apiKey || apiKey === '...') return
+
+      const genAI = new GoogleGenerativeAI(apiKey)
+      const model = createModel(genAI, modelName, newSystemPrompt)
+
+      activeModelRef.current = modelName
       chatRef.current = model.startChat({ history: [] })
     },
-    [apiKey]
+    [apiKey, createModel]
   )
 
   // Send message and stream back tokens
@@ -92,6 +112,33 @@ export function useGemini({ systemPrompt }: UseGeminiOptions) {
 
         callbacks.onDone()
       } catch (err) {
+        const fallbackModel = getFallbackModel(activeModelRef.current)
+        if (fallbackModel && isModelNotFoundError(err)) {
+          try {
+            resetChat(systemPrompt, fallbackModel)
+
+            if (!chatRef.current) {
+              callbacks.onError('Failed to initialize Gemini session.')
+              return
+            }
+
+            const retryResult = await chatRef.current.sendMessageStream(message)
+
+            for await (const chunk of retryResult.stream) {
+              const text = chunk.text()
+              if (text) callbacks.onToken(text)
+            }
+
+            callbacks.onDone()
+            return
+          } catch (retryErr) {
+            const retryMsg = sanitizeGeminiError(retryErr)
+            console.error('[Gemini] Retry failed:', retryMsg)
+            callbacks.onError(retryMsg)
+            return
+          }
+        }
+
         const msg = sanitizeGeminiError(err)
         console.error('[Gemini] Request failed:', msg)
         callbacks.onError(msg)
@@ -110,4 +157,17 @@ export function sanitizeGeminiError(error: unknown): string {
   const message =
     error instanceof Error ? error.message : 'Gemini request failed'
   return message.replace(API_KEY_PATTERN, 'key=REDACTED')
+}
+
+function isModelNotFoundError(error: unknown): boolean {
+  const message =
+    error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase()
+  return message.includes('not found') || message.includes('not supported for generatecontent')
+}
+
+function getFallbackModel(
+  currentModel: (typeof MODEL_CANDIDATES)[number]
+): (typeof MODEL_CANDIDATES)[number] | null {
+  const currentIndex = MODEL_CANDIDATES.indexOf(currentModel)
+  return MODEL_CANDIDATES[currentIndex + 1] ?? null
 }
