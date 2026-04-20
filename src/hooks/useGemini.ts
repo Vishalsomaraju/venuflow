@@ -13,6 +13,7 @@ import {
 } from '@google/generative-ai'
 
 const MODEL_NAME = 'gemini-1.5-flash'
+const API_KEY_PATTERN = /key=[^&\s]+/gi
 
 const SAFETY_SETTINGS = [
   {
@@ -91,8 +92,8 @@ export function useGemini({ systemPrompt }: UseGeminiOptions) {
 
         callbacks.onDone()
       } catch (err) {
-        const msg =
-          err instanceof Error ? err.message : 'Gemini request failed'
+        const msg = sanitizeGeminiError(err)
+        console.error('[Gemini] Request failed:', msg)
         callbacks.onError(msg)
       }
     },
@@ -103,4 +104,10 @@ export function useGemini({ systemPrompt }: UseGeminiOptions) {
     !!apiKey && apiKey !== '...' && apiKey.length > 10
 
   return { sendMessage, resetChat, isConfigured }
+}
+
+function sanitizeGeminiError(error: unknown): string {
+  const message =
+    error instanceof Error ? error.message : 'Gemini request failed'
+  return message.replace(API_KEY_PATTERN, 'key=REDACTED')
 }

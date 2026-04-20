@@ -5,7 +5,7 @@
  * Document IDs are STABLE and must match the IDs written by seedData.ts / seed_firestore.py.
  */
 import { doc, writeBatch, serverTimestamp } from 'firebase/firestore'
-import { db } from '@/lib/firebase'
+import { auth, db } from '@/lib/firebase'
 import { addDocument } from '@/lib/db'
 import type { CongestionLevel, Alert } from '@/types'
 
@@ -170,6 +170,11 @@ async function generateRandomAlert(): Promise<void> {
 }
 
 export function startSimulation(config: Partial<SimulationConfig> = {}): void {
+  if (!auth.currentUser) {
+    console.warn('[Simulator] Cannot start simulation without an authenticated user')
+    return
+  }
+
   if (simulationInterval) {
     console.warn('Simulation already running')
     return

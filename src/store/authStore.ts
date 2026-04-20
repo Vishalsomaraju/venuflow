@@ -14,10 +14,6 @@ interface AuthState {
   // Helpers
   isAdmin: () => boolean;
   isStaff: () => boolean;
-
-  // Demo: elevate current session to staff without Firebase RBAC
-  elevateToStaff: () => void;
-  elevateToAdmin: () => void;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -31,39 +27,4 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isAdmin: () => get().appUser?.role === 'admin',
   isStaff: () =>
     get().appUser?.role === 'staff' || get().appUser?.role === 'admin',
-
-  elevateToStaff: () => {
-    const current = get().appUser
-    if (current) {
-      set({ appUser: { ...current, role: 'staff' } })
-    } else {
-      // No appUser yet — create a synthetic one
-      set({
-        appUser: {
-          id: 'demo-staff',
-          email: 'staff@venueflow.demo',
-          displayName: 'Demo Staff',
-          role: 'staff',
-          createdAt: Date.now(),
-        },
-      })
-    }
-  },
-
-  elevateToAdmin: () => {
-    const current = get().appUser
-    if (current) {
-      set({ appUser: { ...current, role: 'admin' } })
-    } else {
-      set({
-        appUser: {
-          id: 'demo-admin',
-          email: 'admin@venueflow.demo',
-          displayName: 'Demo Admin',
-          role: 'admin',
-          createdAt: Date.now(),
-        },
-      })
-    }
-  },
 }));

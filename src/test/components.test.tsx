@@ -23,14 +23,19 @@ vi.mock('react-hot-toast', () => ({
 
 // ── Mock framer-motion (avoid animation overhead in tests) ───────
 vi.mock('framer-motion', () => {
+  type MotionDivProps = React.HTMLAttributes<HTMLDivElement> & {
+    children?: React.ReactNode
+  }
+
   const MotionDiv = React.forwardRef(
-    ({ children, layout, layoutId, initial, animate, exit, variants, transition, ...props }: any, ref: React.Ref<HTMLDivElement>) =>
+    ({ children, ...props }: MotionDivProps, ref: React.Ref<HTMLDivElement>) =>
       React.createElement('div', { ...props, ref }, children)
   )
   MotionDiv.displayName = 'motion.div'
   return {
     motion: { div: MotionDiv, span: 'span' },
-    AnimatePresence: ({ children }: { children: React.ReactNode }) => React.createElement(React.Fragment, null, children),
+    AnimatePresence: ({ children }: { children: React.ReactNode }) =>
+      React.createElement(React.Fragment, null, children),
     useAnimation: () => ({ start: vi.fn() }),
   }
 })
@@ -100,13 +105,15 @@ describe('SimulationControl', () => {
     expect(screen.getByText(/Simulate Crowd/i)).toBeInTheDocument()
   })
 
-  it('calls startSimulation on click', async () => {
+  it('calls startSimulation with correct config on click', async () => {
     const { SimulationControl } = await import('@/components/dashboard/SimulationControl')
     const { startSimulation } = await import('@/lib/simulator')
     const user = userEvent.setup()
     render(<SimulationControl />)
     await user.click(screen.getByRole('button'))
-    expect(startSimulation).toHaveBeenCalledOnce()
+    expect(startSimulation).toHaveBeenCalledWith(
+      expect.objectContaining({ intervalMs: 5000, volatility: 0.15 })
+    )
   })
 })
 

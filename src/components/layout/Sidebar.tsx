@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { LayoutDashboard, Map, MessageSquareText, Shield, LogOut, User, ShieldCheck } from 'lucide-react';
 import { useUIStore } from '@/store/uiStore';
 import { useAuthStore } from '@/store/authStore';
@@ -17,6 +17,12 @@ const navItems = [
 export function Sidebar() {
   const { sidebarOpen, setSidebarOpen } = useUIStore();
   const isStaff = useAuthStore((s) => s.isStaff());
+  const location = useLocation();
+
+  const isCurrentPath = (path: string): boolean =>
+    path === '/'
+      ? location.pathname === path
+      : location.pathname === path || location.pathname.startsWith(`${path}/`);
 
   return (
     <>
@@ -56,6 +62,7 @@ export function Sidebar() {
               <NavLink
                 key={item.path}
                 to={item.path}
+                aria-current={isCurrentPath(item.path) ? 'page' : undefined}
                 className={({ isActive }) =>
                   cn(
                     "flex items-center px-3 py-3 rounded-xl transition-all relative overflow-hidden group",
@@ -123,6 +130,7 @@ export function Sidebar() {
           <NavLink
             key={item.path}
             to={item.path}
+            aria-current={isCurrentPath(item.path) ? 'page' : undefined}
             className={({ isActive }) => cn(
               "flex flex-col items-center justify-center w-full h-full space-y-1 relative",
               isActive ? "text-primary" : "text-text-secondary"

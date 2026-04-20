@@ -28,6 +28,3 @@ serviceAccountKey.json
 *.sw?
 seed_firestore.py
 serviceAccountKey.json
-firebase.json
-firestore.rules
-.firestore.indexes.json

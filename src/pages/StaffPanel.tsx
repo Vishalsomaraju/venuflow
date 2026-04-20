@@ -143,7 +143,9 @@ function ZoneOverrideSection({
       toast.success(`${zoneName} set to ${level}`)
     } catch (err) {
       console.warn('[StaffPanel] Zone congestion override failed:', err)
-      toast.error('Failed to update zone')
+      const message =
+        err instanceof Error ? err.message : 'Failed to update zone'
+      toast.error(message)
     } finally {
       setPending((p) => {
         const n = new Set(p)
@@ -171,7 +173,9 @@ function ZoneOverrideSection({
       toast.success(`${zoneName} ${closed ? 'closed' : 'reopened'}`)
     } catch (err) {
       console.warn('[StaffPanel] Zone closed toggle failed:', err)
-      toast.error('Failed to update zone')
+      const message =
+        err instanceof Error ? err.message : 'Failed to update zone'
+      toast.error(message)
     } finally {
       setPending((p) => {
         const n = new Set(p)
@@ -285,6 +289,13 @@ function ZoneOverrideSection({
                     max={3}
                     step={1}
                     defaultValue={currentVal}
+                    aria-label={`Congestion level for ${zone.name}`}
+                    aria-valuetext={
+                      CONGESTION_OPTIONS[currentVal]?.label ?? 'Low'
+                    }
+                    aria-valuenow={currentVal}
+                    aria-valuemin={0}
+                    aria-valuemax={3}
                     disabled={isBusy}
                     onMouseUp={(e) =>
                       handleCongestionChange(
@@ -370,7 +381,9 @@ function BroadcastAlertSection({
       setSelectedZone('')
     } catch (err) {
       console.warn('[StaffPanel] Alert broadcast failed:', err)
-      toast.error('Failed to broadcast alert')
+      const message =
+        err instanceof Error ? err.message : 'Failed to broadcast alert'
+      toast.error(message)
     } finally {
       setIsSending(false)
     }
@@ -513,7 +526,9 @@ function FacilityControlsSection({
       toast.success(`${name} ${isOpen ? 'opened' : 'closed'}`)
     } catch (err) {
       console.warn('[StaffPanel] Facility toggle failed:', err)
-      toast.error('Update failed')
+      const message =
+        err instanceof Error ? err.message : 'Update failed'
+      toast.error(message)
     } finally {
       setPending((p) => {
         const n = new Set(p)
@@ -545,7 +560,9 @@ function FacilityControlsSection({
       })
     } catch (err) {
       console.warn('[StaffPanel] Wait time save failed:', err)
-      toast.error('Update failed')
+      const message =
+        err instanceof Error ? err.message : 'Update failed'
+      toast.error(message)
     } finally {
       setPending((p) => {
         const n = new Set(p)

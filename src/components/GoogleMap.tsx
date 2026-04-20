@@ -49,6 +49,7 @@ export function GoogleMapView() {
   const markersRef = useRef<Map<string, google.maps.Marker>>(new Map())
   const infoWindowRef = useRef<google.maps.InfoWindow | null>(null)
   const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null)
+  const directionsServiceRef = useRef<google.maps.DirectionsService | null>(null)
   const destinationMarkerRef = useRef<google.maps.Marker | null>(null)
 
   const [activeMarkerInfo, setActiveMarkerInfo] = useState<Facility | null>(null)
@@ -70,6 +71,7 @@ export function GoogleMapView() {
 
     mapRef.current = map
     infoWindowRef.current = new google.maps.InfoWindow()
+    directionsServiceRef.current = new google.maps.DirectionsService()
 
     directionsRendererRef.current = new google.maps.DirectionsRenderer({
       map,
@@ -166,11 +168,16 @@ export function GoogleMapView() {
 
         const facilityIndex = allFacilities.indexOf(facility)
         const destCoord = getFacilityCoords(facility.name, facilityIndex)
+        const svc = directionsServiceRef.current
+
+        if (!svc) {
+          reject(new Error('Directions not ready'))
+          return
+        }
 
         navigator.geolocation.getCurrentPosition(
           (pos) => {
             const origin = { lat: pos.coords.latitude, lng: pos.coords.longitude }
-            const svc = new google.maps.DirectionsService()
 
             svc.route(
               {
@@ -198,11 +205,12 @@ export function GoogleMapView() {
                   })
 
                   // Pan map to show route
-                  mapRef.current?.fitBounds(
-                    result.routes[0]!.bounds
-                  )
+                  const route = result.routes[0]
+                  if (route) {
+                    mapRef.current?.fitBounds(route.bounds)
+                  }
 
-                  const leg = result.routes[0]?.legs[0]
+                  const leg = route?.legs[0]
                   resolve({
                     distance: leg?.distance?.text ?? '—',
                     duration: leg?.duration?.text ?? '—',

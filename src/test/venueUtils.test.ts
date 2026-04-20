@@ -45,6 +45,15 @@ describe('calcCongestionLevel', () => {
   it('calcCongestionLevel returns low for negative capacity', () => {
     expect(calcCongestionLevel(100, -1)).toBe('low')
   })
+
+  it('handles counts greater than capacity as critical', () => {
+    expect(calcCongestionLevel(11000, 10000)).toBe('critical')
+  })
+
+  it('handles zero capacity without throwing', () => {
+    expect(() => calcCongestionLevel(100, 0)).not.toThrow()
+    expect(calcCongestionLevel(100, 0)).toBe('low')
+  })
 })
 
 // ─── Test 2: sortFacilitiesByWait ────────────────────────────────
@@ -139,8 +148,10 @@ describe('findNearestOpenFacility', () => {
 describe('formatWaitTime', () => {
   it('returns "No wait" for 0', () =>
     expect(formatWaitTime(0)).toBe('No wait'))
-  it('formats minutes under 60', () =>
-    expect(formatWaitTime(15)).toBe('15 min'))
+  it('formats sub-hour waits correctly', () =>
+    expect(formatWaitTime(23)).toBe('23 min'))
+  it('formats exactly 60 minutes as 1h 0m', () =>
+    expect(formatWaitTime(60)).toBe('1h 0m'))
   it('formats hours and minutes', () =>
     expect(formatWaitTime(90)).toBe('1h 30m'))
 })

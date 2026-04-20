@@ -177,7 +177,7 @@ export const useVenueStore = create<VenueState>()(
       get()._unsubscribers.forEach((u) => {
         try {
           u()
-        } catch (_) {
+        } catch {
           /* */
         }
       })
@@ -215,8 +215,8 @@ export const useVenueStore = create<VenueState>()(
         averageWaitTime,
         openGatesCount,
         totalGatesCount: gates.length,
-        mostCongestedZone: sorted[0] ?? null,
-        leastCongestedZone: sorted[sorted.length - 1] ?? null,
+        mostCongestedZone: sorted.at(0) ?? null,
+        leastCongestedZone: sorted.at(-1) ?? null,
         criticalZoneCount: zones.filter((z) => z.congestionLevel === 'critical')
           .length,
         activeAlertCount: alerts.length,
@@ -251,13 +251,13 @@ export const useVenueStore = create<VenueState>()(
       get().zones.length
         ? ([...get().zones].sort(
             (a, b) => PRIORITY[b.congestionLevel] - PRIORITY[a.congestionLevel]
-          )[0] ?? null)
+          ).at(0) ?? null)
         : null,
     getLeastCongestedZone: () =>
       get().zones.length
         ? ([...get().zones].sort(
             (a, b) => PRIORITY[a.congestionLevel] - PRIORITY[b.congestionLevel]
-          )[0] ?? null)
+          ).at(0) ?? null)
         : null,
     getTotalAttendees: () =>
       get().zones.reduce((s, z) => s + (z.currentCount || 0), 0),

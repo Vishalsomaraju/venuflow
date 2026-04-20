@@ -15,20 +15,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(firebaseUser)
 
         // Fetch or create Firestore user doc
-        let userDoc = await getDocument<AppUser>('users', firebaseUser.uid)
-
-        // Auto-elevate demo admin if role isn't set yet
-        const isAdminEmail = firebaseUser.email?.toLowerCase().includes('admin');
+        const userDoc = await getDocument<AppUser>('users', firebaseUser.uid)
 
         if (userDoc) {
-          if (isAdminEmail && userDoc.role !== 'admin') {
-            userDoc.role = 'admin';
-            try {
-              await setDocument('users', firebaseUser.uid, userDoc);
-            } catch (err) {
-              console.warn('[AuthProvider] Admin role elevation write failed:', err)
-            }
-          }
           setAppUser(userDoc)
         } else {
           const newUser: AppUser = {
@@ -37,7 +26,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             displayName:
               firebaseUser.displayName ??
               (firebaseUser.isAnonymous ? 'Guest' : null),
-            role: isAdminEmail ? 'admin' : 'user',
+            role: 'user',
             createdAt: Date.now(),
           }
           try {

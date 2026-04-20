@@ -5,7 +5,7 @@
  * API integration — keeping Assistant.tsx as a pure rendering layer.
  */
 
-import { useState, useRef, useCallback, useMemo } from 'react'
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import { useVenueStore } from '@/store/venueStore'
 import { useGemini } from '@/hooks/useGemini'
 import { buildVenueSystemPrompt, buildQuickContextLine } from '@/lib/geminiContext'
@@ -67,7 +67,7 @@ export function useAssistant(): UseAssistantResult {
   const systemPrompt = useMemo(() => buildVenueSystemPrompt(snapshot), [snapshot])
   const contextLine = useMemo(() => buildQuickContextLine(snapshot), [snapshot])
 
-  const { sendMessage, isConfigured } = useGemini({ systemPrompt })
+  const { sendMessage, resetChat, isConfigured } = useGemini({ systemPrompt })
 
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
@@ -76,6 +76,13 @@ export function useAssistant(): UseAssistantResult {
   const inputRef = useRef<HTMLInputElement | null>(null)
   /** Timestamp of the last successful submit — enforces 2 s rate limit */
   const lastSubmitRef = useRef<number>(0)
+  const prevPromptRef = useRef('')
+
+  useEffect(() => {
+    if (systemPrompt === prevPromptRef.current) return
+    resetChat(systemPrompt)
+    prevPromptRef.current = systemPrompt
+  }, [resetChat, systemPrompt])
 
   /**
    * Submits a user message and streams the assistant response.

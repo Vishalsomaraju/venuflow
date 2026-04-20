@@ -7,7 +7,7 @@
  *
  * Called from the Admin panel "Seed Database" button.
  */
-import { db } from './firebase'
+import { auth, db } from './firebase'
 import { collection, writeBatch, doc } from 'firebase/firestore'
 import type { Zone, Facility, FacilityType } from '@/types'
 import { getFacilityCoords } from '@/lib/facilityCoords'
@@ -250,6 +250,10 @@ function calcCongestionLevel(
 
 
 export async function seedDatabase(): Promise<void> {
+  if (!auth.currentUser) {
+    throw new Error('Must be authenticated to seed the database')
+  }
+
   const now = new Date()
 
   // ── Build all ops across multiple batches (max 500 per batch) ──

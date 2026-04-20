@@ -1,5 +1,5 @@
 // src/components/dashboard/CrowdChart.tsx
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useVenueStore } from '@/store/venueStore'
 import { Card, CardHeader, CardContent } from '@/components/ui/Card'
 import { Activity } from 'lucide-react'
@@ -35,52 +35,77 @@ const MAX_DATA_POINTS = 30
 export function CrowdChart() {
   const zones = useVenueStore((s) => s.zones)
   const [history, setHistory] = useState<ChartDataPoint[]>([])
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const zonesRef = useRef(zones)
+  const prevZoneLengthRef = useRef(0)
 
-  // Capture snapshots of zone data over time
   useEffect(() => {
-    if (zones.length === 0) return
-
-    function captureSnapshot() {
-      const now = new Date()
-      const point: ChartDataPoint = {
-        time: format(now, 'HH:mm:ss'),
-        timestamp: now.getTime(),
-      }
-
-      for (const zone of zones) {
-        point[zone.name] = zone.currentCount
-      }
-
-      setHistory((prev) => {
-        const updated = [...prev, point]
-        return updated.slice(-MAX_DATA_POINTS)
-      })
-    }
-
-    captureSnapshot()
-    const id = setInterval(captureSnapshot, 5000)
-    return () => clearInterval(id)
+    zonesRef.current = zones
   }, [zones])
 
-  // Update latest data point when zones change
-  useEffect(() => {
-    if (zones.length === 0 || history.length === 0) return
+  const captureSnapshot = useCallback(() => {
+    const latestZones = zonesRef.current
+    if (latestZones.length === 0) return
+
+    const now = new Date()
+    const point: ChartDataPoint = {
+      time: format(now, 'HH:mm:ss'),
+      timestamp: now.getTime(),
+    }
+
+    for (const zone of latestZones) {
+      point[zone.name] = zone.currentCount
+    }
 
     setHistory((prev) => {
-      if (prev.length === 0) return prev
-      const updated = [...prev]
-      const last = updated[updated.length - 1]
-      if (!last) return updated
-      const lastPoint: ChartDataPoint = { ...last }
-
-      for (const zone of zones) {
-        lastPoint[zone.name] = zone.currentCount
-      }
-
-      updated[updated.length - 1] = lastPoint
-      return updated
+      const updated = [...prev, point]
+      return updated.slice(-MAX_DATA_POINTS)
     })
-  }, [zones, history.length])
+  }, [])
+
+  useEffect(() => {
+    if (zones.length === 0) {
+      prevZoneLengthRef.current = 0
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+      return
+    }
+
+    if (prevZoneLengthRef.current === 0) {
+      captureSnapshot()
+      intervalRef.current = setInterval(captureSnapshot, 5000)
+    }
+
+    prevZoneLengthRef.current = zones.length
+  }, [zones.length, captureSnapshot])
+
+  useEffect(
+    () => () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current)
+        intervalRef.current = null
+      }
+    },
+    []
+  )
+
+  const chartData = useMemo(() => {
+    if (history.length === 0) return history
+
+    const updated = [...history]
+    const last = updated[updated.length - 1]
+    if (!last) return updated
+
+    const lastPoint: ChartDataPoint = { ...last }
+    for (const zone of zones) {
+      lastPoint[zone.name] = zone.currentCount
+    }
+
+    updated[updated.length - 1] = lastPoint
+    return updated
+  }, [history, zones])
 
   const zoneNames = zones.map((z) => z.name)
 
@@ -92,15 +117,15 @@ export function CrowdChart() {
           <h3 className="font-semibold text-text-primary">
             Crowd Density Over Time
           </h3>
-          {history.length > 1 && (
+          {chartData.length > 1 && (
             <span className="text-xs text-text-muted ml-auto">
-              {history.length} data points
+              {chartData.length} data points
             </span>
           )}
         </div>
       </CardHeader>
       <CardContent>
-        {history.length < 2 ? (
+        {chartData.length < 2 ? (
           <div className="flex h-52 items-center justify-center">
             <p className="text-text-muted text-sm">
               📊 Collecting data points... Start the simulator to see live
@@ -109,7 +134,7 @@ export function CrowdChart() {
           </div>
         ) : (
           <ResponsiveContainer width="100%" height={260}>
-            <AreaChart data={history}>
+            <AreaChart data={chartData}>
               <defs>
                 {zoneNames.map((name) => (
                   <linearGradient

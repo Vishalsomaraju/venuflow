@@ -22,4 +22,10 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const storage = getStorage(app);
 
+if (import.meta.env.DEV && import.meta.env.VITE_GCP_PROJECT_ID) {
+  console.info(
+    `[VenueFlow] Connected to GCP project: ${import.meta.env.VITE_GCP_PROJECT_ID}`
+  );
+}
+
 export default app;

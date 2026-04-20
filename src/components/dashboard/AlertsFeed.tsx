@@ -15,6 +15,9 @@ const severityIcons = {
 
 export function AlertsFeed() {
   const alerts = useVenueStore((s) => s.alerts)
+  const liveMode = alerts.some((alert) => alert.severity === 'critical')
+    ? 'assertive'
+    : 'polite'
 
   return (
     <Card>
@@ -37,7 +40,12 @@ export function AlertsFeed() {
             No active alerts — all systems normal
           </p>
         ) : (
-          <div className="space-y-2 max-h-64 overflow-y-auto">
+          <div
+            className="space-y-2 max-h-64 overflow-y-auto"
+            aria-live={liveMode}
+            aria-atomic="false"
+            aria-relevant="additions"
+          >
             <AnimatePresence mode="popLayout">
               {alerts.slice(0, 10).map((alert) => {
                 const Icon =

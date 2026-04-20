@@ -2,14 +2,24 @@
 import { lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { Sidebar } from '@/components/layout/Sidebar'
-import { Dashboard } from '@/pages/Dashboard'
-const VenueMap = lazy(() =>
-  import('@/pages/VenueMap').then(m => ({ default: m.VenueMap }))
+const Dashboard = lazy(() =>
+  import('@/pages/Dashboard').then((m) => ({ default: m.Dashboard }))
 )
-import { Assistant } from '@/pages/Assistant'
-import { Admin } from '@/pages/Admin'
-import { StaffPanel } from '@/pages/StaffPanel'
-import { Login } from '@/pages/Login'
+const VenueMap = lazy(() =>
+  import('@/pages/VenueMap').then((m) => ({ default: m.VenueMap }))
+)
+const Assistant = lazy(() =>
+  import('@/pages/Assistant').then((m) => ({ default: m.Assistant }))
+)
+const Admin = lazy(() =>
+  import('@/pages/Admin').then((m) => ({ default: m.Admin }))
+)
+const StaffPanel = lazy(() =>
+  import('@/pages/StaffPanel').then((m) => ({ default: m.StaffPanel }))
+)
+const Login = lazy(() =>
+  import('@/pages/Login').then((m) => ({ default: m.Login }))
+)
 import { useAuthStore } from '@/store/authStore'
 import { useVenueSubscription } from '@/hooks/useVenueSubscription'
 import { useSimulationCleanup } from '@/hooks/useSimulationCleanup'
@@ -28,6 +38,14 @@ function AppLoading() {
         <Loader2 className="h-8 w-8 text-accent animate-spin mx-auto" />
         <p className="text-sm text-text-secondary">Loading VenueFlow…</p>
       </div>
+    </div>
+  )
+}
+
+function RouteFallback() {
+  return (
+    <div className="p-6 text-sm text-text-muted" role="status" aria-live="polite">
+      Loading experience...
     </div>
   )
 }
@@ -53,33 +71,31 @@ function AuthenticatedApp() {
         tabIndex={-1}
       >
         <div className="p-6">
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/map" element={
-              <Suspense fallback={<div className="p-6 text-text-muted">Loading map...</div>}>
-                <VenueMap />
-              </Suspense>
-            } />
-            <Route path="/assistant" element={<Assistant />} />
-            <Route
-              path="/admin"
-              element={
-                <ProtectedStaffRoute>
-                  <Admin />
-                </ProtectedStaffRoute>
-              }
-            />
-            <Route
-              path="/staff"
-              element={
-                <ProtectedStaffRoute>
-                  <StaffPanel />
-                </ProtectedStaffRoute>
-              }
-            />
-            <Route path="/login" element={<Navigate to="/" replace />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+          <Suspense fallback={<RouteFallback />}>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/map" element={<VenueMap />} />
+              <Route path="/assistant" element={<Assistant />} />
+              <Route
+                path="/admin"
+                element={
+                  <ProtectedStaffRoute>
+                    <Admin />
+                  </ProtectedStaffRoute>
+                }
+              />
+              <Route
+                path="/staff"
+                element={
+                  <ProtectedStaffRoute>
+                    <StaffPanel />
+                  </ProtectedStaffRoute>
+                }
+              />
+              <Route path="/login" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
         </div>
       </main>
     </div>
@@ -94,10 +110,12 @@ export default function App() {
 
   if (!user) {
     return (
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
-      </Routes>
+      <Suspense fallback={<AppLoading />}>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </Suspense>
     )
   }
 

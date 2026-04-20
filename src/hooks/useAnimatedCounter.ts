@@ -1,5 +1,5 @@
 // src/hooks/useAnimatedCounter.ts
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import {
   useMotionValue,
   useSpring,
@@ -32,11 +32,14 @@ export function useAnimatedCounter({
   damping = 20,
   format = (n) => Math.round(n).toLocaleString(),
 }: UseAnimatedCounterOptions): string {
-  const motionValue = useMotionValue(0)
+  const motionValue = useMotionValue(value)
   const spring = useSpring(motionValue, { stiffness, damping })
-  const [display, setDisplay] = useState(format(0))
+  const [display, setDisplay] = useState(format(value))
+  const prevValueRef = useRef(value)
 
   useEffect(() => {
+    if (prevValueRef.current === value) return
+    prevValueRef.current = value
     motionValue.set(value)
   }, [motionValue, value])
 
