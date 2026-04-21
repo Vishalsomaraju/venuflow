@@ -123,8 +123,6 @@ VenueFlow intentionally uses multiple Google services at the center of the produ
 - Firebase Storage
   - initialized for future media and asset workflows
 
-See [GOOGLE_SERVICES.md](/E:/venueflow/GOOGLE_SERVICES.md) for the explicit service inventory.
-
 ## Architecture Overview
 
 ### Frontend Stack
@@ -216,61 +214,6 @@ src/
 firestore.rules
 firestore.indexes.json
 firebase.json
-```
-
-## Local Setup
-
-### 1. Install dependencies
-
-```bash
-npm install
-```
-
-### 2. Configure environment variables
-
-Create `.env.local` from `.env.example` and provide:
-
-```bash
-VITE_FIREBASE_API_KEY=
-VITE_FIREBASE_AUTH_DOMAIN=
-VITE_FIREBASE_PROJECT_ID=
-VITE_FIREBASE_STORAGE_BUCKET=
-VITE_FIREBASE_MESSAGING_SENDER_ID=
-VITE_FIREBASE_APP_ID=
-VITE_FIREBASE_MEASUREMENT_ID=
-VITE_GOOGLE_MAPS_API_KEY=
-VITE_GEMINI_API_KEY=
-VITE_GCP_PROJECT_ID=
-```
-
-### 3. Enable Firebase Authentication
-
-In Firebase Console:
-
-- enable Anonymous authentication
-- enable Google sign-in if using operator login
-
-### 4. Start the app
-
-```bash
-npm run dev
-```
-
-### 5. Deploy Firestore rules and indexes if needed
-
-```bash
-firebase deploy --only firestore
-```
-
-## Scripts
-
-```bash
-npm run dev
-npm run build
-npm run lint
-npm run test
-npm run test:coverage
-npm run deploy
 ```
 
 ## Suggested Judge Demo Flow
